@@ -1,253 +1,169 @@
--- BeautifulGUI Library - Versão Corrigida
--- Correção para: Remote event invocation discarded event
-
-local BeautifulGUI = {}
-BeautifulGUI.__index = BeautifulGUI
-
--- Serviços
+local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 
--- Configuração padrão
-local DefaultConfig = {
-    Name = "BeautifulGUI",
-    Size = UDim2.new(0, 500, 0, 400),
-    Theme = "Dark",
-    BlurBackground = false -- Desativado para evitar problemas
-}
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
 
--- Temas
-local Themes = {
-    Dark = {
-        Background = Color3.fromRGB(25, 25, 35),
-        Header = Color3.fromRGB(35, 35, 45),
-        Tab = Color3.fromRGB(40, 40, 50),
-        TabSelected = Color3.fromRGB(60, 100, 255),
-        Text = Color3.fromRGB(255, 255, 255),
-        TextSecondary = Color3.fromRGB(200, 200, 200),
-        Button = Color3.fromRGB(60, 100, 255),
-        ButtonHover = Color3.fromRGB(80, 120, 255),
-        ToggleOff = Color3.fromRGB(60, 60, 70),
-        ToggleOn = Color3.fromRGB(60, 180, 100)
-    }
-}
+-- Criar a ScreenGui principal
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "BeautifulGUI"
+screenGui.Parent = playerGui
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-function BeautifulGUI.new(config)
-    local self = setmetatable({}, BeautifulGUI)
+-- Efeito de blur background
+local blurEffect = Instance.new("BlurEffect")
+blurEffect.Size = 8
+blurEffect.Parent = game:GetService("Lighting")
+
+-- Frame principal
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 500, 0, 400)
+mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+mainFrame.BackgroundTransparency = 0.1
+mainFrame.BorderSizePixel = 0
+mainFrame.ClipsDescendants = true
+mainFrame.Parent = screenGui
+
+-- Cantos arredondados
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 15)
+mainCorner.Parent = mainFrame
+
+-- Borda luminosa
+local mainStroke = Instance.new("UIStroke")
+mainStroke.Thickness = 2
+mainStroke.Color = Color3.fromRGB(100, 100, 255)
+mainStroke.Transparency = 0.3
+mainStroke.Parent = mainFrame
+
+-- Header
+local header = Instance.new("Frame")
+header.Name = "Header"
+header.Size = UDim2.new(1, 0, 0, 50)
+header.Position = UDim2.new(0, 0, 0, 0)
+header.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+header.BackgroundTransparency = 0.1
+header.BorderSizePixel = 0
+header.Parent = mainFrame
+
+local headerCorner = Instance.new("UICorner")
+headerCorner.CornerRadius = UDim.new(0, 15)
+headerCorner.Parent = header
+
+-- Título
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.Size = UDim2.new(0, 200, 1, 0)
+title.Position = UDim2.new(0, 20, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "SISTEMA VIP"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextSize = 20
+title.Font = Enum.Font.GothamBold
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = header
+
+-- Botão fechar
+local closeButton = Instance.new("TextButton")
+closeButton.Name = "CloseButton"
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -35, 0, 10)
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+closeButton.BorderSizePixel = 0
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.TextSize = 16
+closeButton.Font = Enum.Font.GothamBold
+closeButton.Parent = header
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(1, 0)
+closeCorner.Parent = closeButton
+
+-- Container de Tabs
+local tabsContainer = Instance.new("Frame")
+tabsContainer.Name = "TabsContainer"
+tabsContainer.Size = UDim2.new(0, 120, 1, -50)
+tabsContainer.Position = UDim2.new(0, 0, 0, 50)
+tabsContainer.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+tabsContainer.BorderSizePixel = 0
+tabsContainer.Parent = mainFrame
+
+-- Container de Conteúdo
+local contentContainer = Instance.new("Frame")
+contentContainer.Name = "ContentContainer"
+contentContainer.Size = UDim2.new(1, -120, 1, -50)
+contentContainer.Position = UDim2.new(0, 120, 0, 50)
+contentContainer.BackgroundTransparency = 1
+contentContainer.Parent = mainFrame
+
+-- ScrollingFrame para conteúdo
+local scrollingFrame = Instance.new("ScrollingFrame")
+scrollingFrame.Name = "ScrollingFrame"
+scrollingFrame.Size = UDim2.new(1, 0, 1, 0)
+scrollingFrame.Position = UDim2.new(0, 0, 0, 0)
+scrollingFrame.BackgroundTransparency = 1
+scrollingFrame.BorderSizePixel = 0
+scrollingFrame.ScrollBarThickness = 3
+scrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
+scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+scrollingFrame.Parent = contentContainer
+
+local layout = Instance.new("UIListLayout")
+layout.Padding = UDim.new(0, 10)
+layout.Parent = scrollingFrame
+
+-- Partículas de fundo
+local particlesFrame = Instance.new("Frame")
+particlesFrame.Name = "Particles"
+particlesFrame.Size = UDim2.new(1, 0, 1, 0)
+particlesFrame.BackgroundTransparency = 1
+particlesFrame.Parent = mainFrame
+
+-- Criar partículas
+for i = 1, 12 do
+    local particle = Instance.new("Frame")
+    particle.Size = UDim2.new(0, math.random(3, 6), 0, math.random(3, 6))
+    particle.Position = UDim2.new(0, math.random(0, 450), 0, math.random(50, 350))
+    particle.BackgroundColor3 = Color3.fromRGB(
+        math.random(80, 150),
+        math.random(80, 150),
+        math.random(180, 255)
+    )
+    particle.BackgroundTransparency = 0.8
+    particle.BorderSizePixel = 0
+    particle.Parent = particlesFrame
     
-    self.Config = setmetatable(config or {}, {__index = DefaultConfig})
-    self.Theme = Themes[self.Config.Theme] or Themes.Dark
-    self.Tabs = {}
-    self.CurrentTab = nil
-    self.Connections = {}
-    
-    -- Verificar se o player existe
-    local success, err = pcall(function()
-        self:Initialize()
-    end)
-    
-    if not success then
-        warn("Erro ao inicializar GUI:", err)
-        return nil
-    end
-    
-    return self
+    local particleCorner = Instance.new("UICorner")
+    particleCorner.CornerRadius = UDim.new(1, 0)
+    particleCorner.Parent = particle
 end
 
--- Inicialização segura
-function BeautifulGUI:Initialize()
-    local player = Players.LocalPlayer
-    if not player then
-        error("Player não encontrado")
-    end
-    
-    local playerGui = player:WaitForChild("PlayerGui")
-    
-    -- ScreenGui
-    self.ScreenGui = Instance.new("ScreenGui")
-    self.ScreenGui.Name = self.Config.Name
-    self.ScreenGui.Parent = playerGui
-    self.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    self.ScreenGui.ResetOnSpawn = false
+-- Efeito de onda pulsante
+local pulseRing = Instance.new("Frame")
+pulseRing.Name = "PulseRing"
+pulseRing.Size = UDim2.new(0, 80, 0, 80)
+pulseRing.Position = UDim2.new(0.5, 0, 0.5, 0)
+pulseRing.AnchorPoint = Vector2.new(0.5, 0.5)
+pulseRing.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
+pulseRing.BackgroundTransparency = 0.9
+pulseRing.BorderSizePixel = 0
+pulseRing.Parent = mainFrame
 
-    -- Main Frame
-    self.MainFrame = Instance.new("Frame")
-    self.MainFrame.Name = "MainFrame"
-    self.MainFrame.Size = UDim2.new(0, 0, 0, 0) -- Começa pequeno
-    self.MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    self.MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-    self.MainFrame.BackgroundColor3 = self.Theme.Background
-    self.MainFrame.BackgroundTransparency = 1
-    self.MainFrame.BorderSizePixel = 0
-    self.MainFrame.ClipsDescendants = true
-    self.MainFrame.Parent = self.ScreenGui
+local pulseCorner = Instance.new("UICorner")
+pulseCorner.CornerRadius = UDim.new(1, 0)
+pulseCorner.Parent = pulseRing
 
-    -- Cantos arredondados
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 8)
-    corner.Parent = self.MainFrame
+-- Sistema de Tabs
+local Tabs = {}
+local CurrentTab = nil
 
-    -- Header
-    self.Header = Instance.new("Frame")
-    self.Header.Name = "Header"
-    self.Header.Size = UDim2.new(1, 0, 0, 40)
-    self.Header.Position = UDim2.new(0, 0, 0, 0)
-    self.Header.BackgroundColor3 = self.Theme.Header
-    self.Header.BorderSizePixel = 0
-    self.Header.Parent = self.MainFrame
-
-    local headerCorner = Instance.new("UICorner")
-    headerCorner.CornerRadius = UDim.new(0, 8)
-    headerCorner.Parent = self.Header
-
-    -- Título
-    self.Title = Instance.new("TextLabel")
-    self.Title.Name = "Title"
-    self.Title.Size = UDim2.new(0, 200, 1, 0)
-    self.Title.Position = UDim2.new(0, 15, 0, 0)
-    self.Title.BackgroundTransparency = 1
-    self.Title.Text = self.Config.Name
-    self.Title.TextColor3 = self.Theme.Text
-    self.Title.TextSize = 18
-    self.Title.Font = Enum.Font.GothamSemibold
-    self.Title.TextXAlignment = Enum.TextXAlignment.Left
-    self.Title.Parent = self.Header
-
-    -- Botão fechar
-    self.CloseButton = Instance.new("TextButton")
-    self.CloseButton.Name = "CloseButton"
-    self.CloseButton.Size = UDim2.new(0, 30, 0, 30)
-    self.CloseButton.Position = UDim2.new(1, -35, 0, 5)
-    self.CloseButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
-    self.CloseButton.BorderSizePixel = 0
-    self.CloseButton.Text = "X"
-    self.CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    self.CloseButton.TextSize = 14
-    self.CloseButton.Font = Enum.Font.GothamBold
-    self.CloseButton.Parent = self.Header
-
-    local closeCorner = Instance.new("UICorner")
-    closeCorner.CornerRadius = UDim.new(1, 0)
-    closeCorner.Parent = self.CloseButton
-
-    -- Container de Tabs
-    self.TabsContainer = Instance.new("Frame")
-    self.TabsContainer.Name = "TabsContainer"
-    self.TabsContainer.Size = UDim2.new(0, 120, 1, -40)
-    self.TabsContainer.Position = UDim2.new(0, 0, 0, 40)
-    self.TabsContainer.BackgroundColor3 = self.Theme.Tab
-    self.TabsContainer.BorderSizePixel = 0
-    self.TabsContainer.Parent = self.MainFrame
-
-    -- Container de Conteúdo
-    self.ContentContainer = Instance.new("Frame")
-    self.ContentContainer.Name = "ContentContainer"
-    self.ContentContainer.Size = UDim2.new(1, -120, 1, -40)
-    self.ContentContainer.Position = UDim2.new(0, 120, 0, 40)
-    self.ContentContainer.BackgroundTransparency = 1
-    self.ContentContainer.Parent = self.MainFrame
-
-    -- ScrollingFrame para conteúdo
-    self.ScrollingFrame = Instance.new("ScrollingFrame")
-    self.ScrollingFrame.Name = "ScrollingFrame"
-    self.ScrollingFrame.Size = UDim2.new(1, 0, 1, 0)
-    self.ScrollingFrame.Position = UDim2.new(0, 0, 0, 0)
-    self.ScrollingFrame.BackgroundTransparency = 1
-    self.ScrollingFrame.BorderSizePixel = 0
-    self.ScrollingFrame.ScrollBarThickness = 3
-    self.ScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
-    self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-    self.ScrollingFrame.Parent = self.ContentContainer
-
-    local layout = Instance.new("UIListLayout")
-    layout.Padding = UDim.new(0, 10)
-    layout.Parent = self.ScrollingFrame
-
-    -- Atualizar canvas size
-    layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y)
-    end)
-
-    -- Conectar eventos
-    self:SetupEvents()
-    
-    -- Animação de entrada
-    delay(0.1, function()
-        self:AnimateIn()
-    end)
-end
-
--- Configurar eventos
-function BeautifulGUI:SetupEvents()
-    -- Fechar GUI
-    self.Connections.Close = self.CloseButton.MouseButton1Click:Connect(function()
-        self:Destroy()
-    end)
-    
-    -- Drag seguro
-    local dragging = false
-    local dragInput, dragStart, startPos
-
-    local function onInputBegan(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = self.MainFrame.Position
-            
-            local connection
-            connection = input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                    connection:Disconnect()
-                end
-            end)
-        end
-    end
-
-    local function onInputChanged(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            dragInput = input
-        end
-    end
-
-    local function onInputChangedGlobal(input)
-        if input == dragInput and dragging then
-            local delta = input.Position - dragStart
-            self.MainFrame.Position = UDim2.new(
-                startPos.X.Scale, startPos.X.Offset + delta.X,
-                startPos.Y.Scale, startPos.Y.Offset + delta.Y
-            )
-        end
-    end
-
-    self.Connections.InputBegan = self.Header.InputBegan:Connect(onInputBegan)
-    self.Connections.InputChanged = self.Header.InputChanged:Connect(onInputChanged)
-    self.Connections.InputChangedGlobal = UserInputService.InputChanged:Connect(onInputChangedGlobal)
-end
-
--- Animação de entrada
-function BeautifulGUI:AnimateIn()
-    local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-    
-    local sizeTween = TweenService:Create(self.MainFrame, tweenInfo, {
-        Size = self.Config.Size
-    })
-    
-    local transparencyTween = TweenService:Create(self.MainFrame, tweenInfo, {
-        BackgroundTransparency = 0
-    })
-    
-    sizeTween:Play()
-    transparencyTween:Play()
-end
-
--- =============================================
--- MÉTODOS PRINCIPAIS
--- =============================================
-
-function BeautifulGUI:CreateTab(tabName)
+local function CreateTab(tabName)
     local tab = {
         Name = tabName,
         Container = nil,
@@ -258,14 +174,14 @@ function BeautifulGUI:CreateTab(tabName)
     local tabButton = Instance.new("TextButton")
     tabButton.Name = tabName .. "Tab"
     tabButton.Size = UDim2.new(1, -10, 0, 35)
-    tabButton.Position = UDim2.new(0, 5, 0, 5 + (#self.Tabs * 40))
-    tabButton.BackgroundColor3 = self.Theme.Tab
+    tabButton.Position = UDim2.new(0, 5, 0, 5 + (#Tabs * 40))
+    tabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
     tabButton.BorderSizePixel = 0
     tabButton.Text = tabName
-    tabButton.TextColor3 = self.Theme.TextSecondary
+    tabButton.TextColor3 = Color3.fromRGB(200, 200, 200)
     tabButton.TextSize = 14
     tabButton.Font = Enum.Font.Gotham
-    tabButton.Parent = self.TabsContainer
+    tabButton.Parent = tabsContainer
     
     local tabCorner = Instance.new("UICorner")
     tabCorner.CornerRadius = UDim.new(0, 6)
@@ -277,7 +193,7 @@ function BeautifulGUI:CreateTab(tabName)
     tabContainer.Size = UDim2.new(1, 0, 0, 0)
     tabContainer.BackgroundTransparency = 1
     tabContainer.Visible = false
-    tabContainer.Parent = self.ScrollingFrame
+    tabContainer.Parent = scrollingFrame
     
     local tabLayout = Instance.new("UIListLayout")
     tabLayout.Padding = UDim.new(0, 10)
@@ -288,40 +204,36 @@ function BeautifulGUI:CreateTab(tabName)
     
     -- Evento de clique
     tabButton.MouseButton1Click:Connect(function()
-        self:SwitchTab(tabName)
+        -- Deselecionar todas as tabs
+        for _, otherTab in pairs(Tabs) do
+            otherTab.Container.Visible = false
+            otherTab.Button.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+            otherTab.Button.TextColor3 = Color3.fromRGB(200, 200, 200)
+        end
+        
+        -- Selecionar esta tab
+        tab.Container.Visible = true
+        tab.Button.BackgroundColor3 = Color3.fromRGB(60, 100, 255)
+        tab.Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+        CurrentTab = tab
     end)
     
-    table.insert(self.Tabs, tab)
+    table.insert(Tabs, tab)
     
     -- Selecionar primeira tab
-    if #self.Tabs == 1 then
-        self:SwitchTab(tabName)
+    if #Tabs == 1 then
+        tabButton.BackgroundColor3 = Color3.fromRGB(60, 100, 255)
+        tabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        tabContainer.Visible = true
+        CurrentTab = tab
     end
     
     return tab
 end
 
-function BeautifulGUI:SwitchTab(tabName)
-    for _, tab in pairs(self.Tabs) do
-        if tab.Name == tabName then
-            tab.Container.Visible = true
-            tab.Button.BackgroundColor3 = self.Theme.TabSelected
-            tab.Button.TextColor3 = self.Theme.Text
-            self.CurrentTab = tab
-        else
-            tab.Container.Visible = false
-            tab.Button.BackgroundColor3 = self.Theme.Tab
-            tab.Button.TextColor3 = self.Theme.TextSecondary
-        end
-    end
-end
-
--- =============================================
--- ELEMENTOS DA GUI
--- =============================================
-
-function BeautifulGUI:CreateSection(sectionName, parentTab)
-    local tab = parentTab or self.CurrentTab
+-- Função para criar Section
+local function CreateSection(sectionName, parentTab)
+    local tab = parentTab or CurrentTab
     if not tab then return end
     
     local section = Instance.new("Frame")
@@ -334,8 +246,8 @@ function BeautifulGUI:CreateSection(sectionName, parentTab)
     sectionLabel.Name = "Label"
     sectionLabel.Size = UDim2.new(1, 0, 1, 0)
     sectionLabel.BackgroundTransparency = 1
-    sectionLabel.Text = "│ " .. sectionName
-    sectionLabel.TextColor3 = self.Theme.Text
+    sectionLabel.Text = "│ " .. sectionName:upper()
+    sectionLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     sectionLabel.TextSize = 16
     sectionLabel.Font = Enum.Font.GothamBold
     sectionLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -344,17 +256,18 @@ function BeautifulGUI:CreateSection(sectionName, parentTab)
     return section
 end
 
-function BeautifulGUI:CreateButton(buttonConfig, parentTab)
-    local tab = parentTab or self.CurrentTab
+-- Função para criar Button
+local function CreateButton(buttonConfig, parentTab)
+    local tab = parentTab or CurrentTab
     if not tab then return end
     
     local button = Instance.new("TextButton")
     button.Name = buttonConfig.Name .. "Button"
     button.Size = UDim2.new(1, -20, 0, 35)
-    button.BackgroundColor3 = self.Theme.Button
+    button.BackgroundColor3 = Color3.fromRGB(60, 100, 255)
     button.BorderSizePixel = 0
     button.Text = buttonConfig.Text or buttonConfig.Name
-    button.TextColor3 = self.Theme.Text
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
     button.TextSize = 14
     button.Font = Enum.Font.Gotham
     button.Parent = tab.Container
@@ -366,31 +279,27 @@ function BeautifulGUI:CreateButton(buttonConfig, parentTab)
     -- Efeito hover
     button.MouseEnter:Connect(function()
         TweenService:Create(button, TweenInfo.new(0.2), {
-            BackgroundColor3 = self.Theme.ButtonHover
+            BackgroundColor3 = Color3.fromRGB(80, 120, 255)
         }):Play()
     end)
     
     button.MouseLeave:Connect(function()
         TweenService:Create(button, TweenInfo.new(0.2), {
-            BackgroundColor3 = self.Theme.Button
+            BackgroundColor3 = Color3.fromRGB(60, 100, 255)
         }):Play()
     end)
     
-    -- Callback seguro
+    -- Callback
     if buttonConfig.Callback then
-        button.MouseButton1Click:Connect(function()
-            local success, err = pcall(buttonConfig.Callback)
-            if not success then
-                warn("Erro no callback do botão " .. buttonConfig.Name .. ":", err)
-            end
-        end)
+        button.MouseButton1Click:Connect(buttonConfig.Callback)
     end
     
     return button
 end
 
-function BeautifulGUI:CreateToggle(toggleConfig, parentTab)
-    local tab = parentTab or self.CurrentTab
+-- Função para criar Toggle
+local function CreateToggle(toggleConfig, parentTab)
+    local tab = parentTab or CurrentTab
     if not tab then return end
     
     local toggleFrame = Instance.new("Frame")
@@ -405,7 +314,7 @@ function BeautifulGUI:CreateToggle(toggleConfig, parentTab)
     toggleLabel.Position = UDim2.new(0, 0, 0, 0)
     toggleLabel.BackgroundTransparency = 1
     toggleLabel.Text = toggleConfig.Text or toggleConfig.Name
-    toggleLabel.TextColor3 = self.Theme.Text
+    toggleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     toggleLabel.TextSize = 14
     toggleLabel.Font = Enum.Font.Gotham
     toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -415,7 +324,7 @@ function BeautifulGUI:CreateToggle(toggleConfig, parentTab)
     toggleButton.Name = "Toggle"
     toggleButton.Size = UDim2.new(0, 50, 0, 25)
     toggleButton.Position = UDim2.new(1, -50, 0, 2)
-    toggleButton.BackgroundColor3 = self.Theme.ToggleOff
+    toggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
     toggleButton.BorderSizePixel = 0
     toggleButton.Text = ""
     toggleButton.Parent = toggleFrame
@@ -441,14 +350,14 @@ function BeautifulGUI:CreateToggle(toggleConfig, parentTab)
     local function updateToggle()
         if state then
             TweenService:Create(toggleButton, TweenInfo.new(0.2), {
-                BackgroundColor3 = self.Theme.ToggleOn
+                BackgroundColor3 = Color3.fromRGB(60, 180, 100)
             }):Play()
             TweenService:Create(toggleDot, TweenInfo.new(0.2), {
                 Position = UDim2.new(0, 27, 0, 2)
             }):Play()
         else
             TweenService:Create(toggleButton, TweenInfo.new(0.2), {
-                BackgroundColor3 = self.Theme.ToggleOff
+                BackgroundColor3 = Color3.fromRGB(60, 60, 70)
             }):Play()
             TweenService:Create(toggleDot, TweenInfo.new(0.2), {
                 Position = UDim2.new(0, 2, 0, 2)
@@ -458,15 +367,12 @@ function BeautifulGUI:CreateToggle(toggleConfig, parentTab)
     
     updateToggle()
     
-    -- Evento seguro
+    -- Evento
     toggleButton.MouseButton1Click:Connect(function()
         state = not state
         updateToggle()
         if toggleConfig.Callback then
-            local success, err = pcall(toggleConfig.Callback, state)
-            if not success then
-                warn("Erro no callback do toggle " .. toggleConfig.Name .. ":", err)
-            end
+            toggleConfig.Callback(state)
         end
     end)
     
@@ -481,60 +387,120 @@ function BeautifulGUI:CreateToggle(toggleConfig, parentTab)
     }
 end
 
-function BeautifulGUI:CreateLabel(labelConfig, parentTab)
-    local tab = parentTab or self.CurrentTab
-    if not tab then return end
-    
-    local label = Instance.new("TextLabel")
-    label.Name = labelConfig.Name .. "Label"
-    label.Size = UDim2.new(1, -20, 0, 25)
-    label.BackgroundTransparency = 1
-    label.Text = labelConfig.Text or labelConfig.Name
-    label.TextColor3 = self.Theme.Text
-    label.TextSize = 14
-    label.Font = Enum.Font.Gotham
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = tab.Container
-    
-    return label
-end
+-- ANIMAÇÕES
+-- Animação de entrada
+mainFrame.Size = UDim2.new(0, 0, 0, 0)
+mainFrame.BackgroundTransparency = 1
 
--- =============================================
--- UTILITÁRIOS
--- =============================================
+local entranceTween = TweenService:Create(
+    mainFrame,
+    TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+    {Size = UDim2.new(0, 500, 0, 400), BackgroundTransparency = 0.1}
+)
+entranceTween:Play()
 
-function BeautifulGUI:Destroy()
-    -- Limpar conexões
-    for _, connection in pairs(self.Connections) do
-        if connection then
-            pcall(function() connection:Disconnect() end)
+-- Animação de pulso
+local pulseTween = TweenService:Create(
+    pulseRing,
+    TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, -1, true),
+    {Size = UDim2.new(0, 160, 0, 160), BackgroundTransparency = 1}
+)
+pulseTween:Play()
+
+-- Animação das partículas
+local function animateParticles()
+    for _, particle in pairs(particlesFrame:GetChildren()) do
+        if particle:IsA("Frame") then
+            local randomX = math.random(-50, 500)
+            local randomY = math.random(50, 400)
+            local randomTime = math.random(4, 10)
+            
+            local tween = TweenService:Create(
+                particle,
+                TweenInfo.new(randomTime, Enum.EasingStyle.Linear, Enum.EasingDirection.Out, -1, true),
+                {Position = UDim2.new(0, randomX, 0, randomY)}
+            )
+            tween:Play()
         end
     end
+end
+animateParticles()
+
+-- Efeitos de hover no botão fechar
+closeButton.MouseEnter:Connect(function()
+    TweenService:Create(
+        closeButton,
+        TweenInfo.new(0.2),
+        {BackgroundColor3 = Color3.fromRGB(255, 100, 100), Size = UDim2.new(0, 32, 0, 32)}
+    ):Play()
+end)
+
+closeButton.MouseLeave:Connect(function()
+    TweenService:Create(
+        closeButton,
+        TweenInfo.new(0.2),
+        {BackgroundColor3 = Color3.fromRGB(255, 80, 80), Size = UDim2.new(0, 30, 0, 30)}
+    ):Play()
+end)
+
+-- Função fechar
+closeButton.MouseButton1Click:Connect(function()
+    local exitTween = TweenService:Create(
+        mainFrame,
+        TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In),
+        {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1}
+    )
     
-    -- Destruir GUI
-    if self.ScreenGui then
-        pcall(function() self.ScreenGui:Destroy() end)
-    end
-end
-
-function BeautifulGUI:Toggle()
-    if self.ScreenGui then
-        self.ScreenGui.Enabled = not self.ScreenGui.Enabled
-    end
-end
-
--- Função para carregar seguro
-local function safeLoad()
-    local success, lib = pcall(function()
-        return BeautifulGUI
+    exitTween:Play()
+    exitTween.Completed:Connect(function()
+        screenGui:Destroy()
+        blurEffect.Enabled = false
     end)
-    
-    if success then
-        return lib
-    else
-        warn("Erro ao carregar BeautifulGUI:", lib)
-        return nil
-    end
-end
+end)
 
-return safeLoad()
+-- Atualizar canvas size
+layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y)
+end)
+
+-- Sistema de drag
+local dragging = false
+local dragInput, dragStart, startPos
+
+header.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+header.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(
+            startPos.X.Scale, startPos.X.Offset + delta.X,
+            startPos.Y.Scale, startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+-- EXPORTAR FUNÇÕES
+return {
+    CreateTab = CreateTab,
+    CreateSection = CreateSection,
+    CreateButton = CreateButton,
+    CreateToggle = CreateToggle
+}
