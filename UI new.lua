@@ -1,6 +1,6 @@
 -- BeautifulGUI Library
 -- Versão: 2.0 - Compatível com PC e Mobile
--- Features: Botão de minimizar, Tabs, Buttons, Efeitos visuais
+-- Features: Botão de minimizar, Tabs, Buttons, Efeitos Visuais
 
 local BeautifulGUI = {}
 BeautifulGUI.__index = BeautifulGUI
@@ -16,7 +16,9 @@ local DefaultConfig = {
     Name = "BeautifulGUI",
     Theme = "Dark",
     Position = UDim2.new(0.5, -250, 0.5, -200),
-    EnableBlur = false
+    EnableBlur = false,
+    EnableParticles = true,
+    EnablePulse = true
 }
 
 -- Temas
@@ -69,11 +71,12 @@ function BeautifulGUI:Initialize()
     
     print("🎮 BeautifulGUI Carregada!")
     print("📟 Plataforma: " .. (self:IsMobile() and "📱 MOBILE" or "🖥️ PC"))
-    print("📌 Use o botão '-' para minimizar/expandir")
+    print("✨ Efeitos visuais ativados!")
+    print("📌 Use o botão '--' para minimizar/expandir")
 end
 
 -- =============================================
--- GUI PRINCIPAL
+-- GUI PRINCIPAL COM EFEITOS
 -- =============================================
 
 function BeautifulGUI:CreateMainGUI()
@@ -92,9 +95,9 @@ function BeautifulGUI:CreateMainGUI()
         self.blurEffect.Parent = game:GetService("Lighting")
     end
 
-    -- Ajustar tamanho baseado na plataforma (MAIOR para mobile)
-    self.guiWidth = self:IsMobile() and 450 or 500  -- Aumentado para mobile
-    self.guiHeight = self:IsMobile() and 600 or 400 -- Aumentado para mobile
+    -- Ajustar tamanho baseado na plataforma
+    self.guiWidth = self:IsMobile() and 400 or 500
+    self.guiHeight = self:IsMobile() and 500 or 400
 
     -- Frame principal
     self.mainFrame = Instance.new("Frame")
@@ -107,30 +110,64 @@ function BeautifulGUI:CreateMainGUI()
     self.mainFrame.ClipsDescendants = true
     self.mainFrame.Parent = self.screenGui
 
-    -- Efeito de sombra
-    local shadow = Instance.new("ImageLabel")
-    shadow.Name = "Shadow"
-    shadow.Size = UDim2.new(1, 20, 1, 20)
-    shadow.Position = UDim2.new(0, -10, 0, -10)
-    shadow.BackgroundTransparency = 1
-    shadow.Image = "rbxassetid://2615687895"
-    shadow.ImageColor3 = Color3.new(0, 0, 0)
-    shadow.ImageTransparency = 0.8
-    shadow.ScaleType = Enum.ScaleType.Slice
-    shadow.SliceCenter = Rect.new(20, 20, 280, 280)
-    shadow.Parent = self.mainFrame
-
     -- Cantos arredondados
     local mainCorner = Instance.new("UICorner")
     mainCorner.CornerRadius = UDim.new(0, 15)
     mainCorner.Parent = self.mainFrame
 
-    -- Borda luminosa
+    -- Borda luminosa com efeito
     local mainStroke = Instance.new("UIStroke")
     mainStroke.Thickness = 2
     mainStroke.Color = Color3.fromRGB(100, 100, 255)
     mainStroke.Transparency = 0.3
     mainStroke.Parent = self.mainFrame
+
+    -- Efeito de partículas de fundo
+    if self.Config.EnableParticles then
+        self.particlesFrame = Instance.new("Frame")
+        self.particlesFrame.Name = "Particles"
+        self.particlesFrame.Size = UDim2.new(1, 0, 1, 0)
+        self.particlesFrame.BackgroundTransparency = 1
+        self.particlesFrame.Parent = self.mainFrame
+
+        -- Criar partículas
+        for i = 1, 12 do
+            local particle = Instance.new("Frame")
+            particle.Size = UDim2.new(0, math.random(2, 5), 0, math.random(2, 5))
+            particle.Position = UDim2.new(0, math.random(0, self.guiWidth), 0, math.random(0, self.guiHeight))
+            particle.BackgroundColor3 = Color3.fromRGB(
+                math.random(80, 150),
+                math.random(80, 150),
+                math.random(180, 255)
+            )
+            particle.BackgroundTransparency = 0.8
+            particle.BorderSizePixel = 0
+            particle.ZIndex = 0
+            particle.Parent = self.particlesFrame
+            
+            local particleCorner = Instance.new("UICorner")
+            particleCorner.CornerRadius = UDim.new(1, 0)
+            particleCorner.Parent = particle
+        end
+    end
+
+    -- Efeito de onda pulsante
+    if self.Config.EnablePulse then
+        self.pulseRing = Instance.new("Frame")
+        self.pulseRing.Name = "PulseRing"
+        self.pulseRing.Size = UDim2.new(0, 80, 0, 80)
+        self.pulseRing.Position = UDim2.new(0.5, -40, 0.5, -40)
+        self.pulseRing.AnchorPoint = Vector2.new(0.5, 0.5)
+        self.pulseRing.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
+        self.pulseRing.BackgroundTransparency = 0.9
+        self.pulseRing.BorderSizePixel = 0
+        self.pulseRing.ZIndex = 0
+        self.pulseRing.Parent = self.mainFrame
+
+        local pulseCorner = Instance.new("UICorner")
+        pulseCorner.CornerRadius = UDim.new(1, 0)
+        pulseCorner.Parent = self.pulseRing
+    end
 
     -- Header
     self.headerHeight = self:IsMobile() and 60 or 50
@@ -141,11 +178,21 @@ function BeautifulGUI:CreateMainGUI()
     self.header.BackgroundColor3 = self.Theme.Header
     self.header.BackgroundTransparency = 0.1
     self.header.BorderSizePixel = 0
+    self.header.ZIndex = 2
     self.header.Parent = self.mainFrame
 
     local headerCorner = Instance.new("UICorner")
     headerCorner.CornerRadius = UDim.new(0, 15)
     headerCorner.Parent = self.header
+
+    -- Gradiente no header
+    local headerGradient = Instance.new("UIGradient")
+    headerGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, self.Theme.Header),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 40, 60))
+    })
+    headerGradient.Rotation = 90
+    headerGradient.Parent = self.header
 
     -- Título
     self.title = Instance.new("TextLabel")
@@ -155,56 +202,74 @@ function BeautifulGUI:CreateMainGUI()
     self.title.BackgroundTransparency = 1
     self.title.Text = self.Config.Name
     self.title.TextColor3 = self.Theme.Text
-    self.title.TextSize = self:IsMobile() and 22 or 18
+    self.title.TextSize = self:IsMobile() and 20 or 18
     self.title.Font = Enum.Font.GothamBold
     self.title.TextXAlignment = Enum.TextXAlignment.Left
+    self.title.ZIndex = 3
     self.title.Parent = self.header
 
-    -- Botão minimizar (adaptado para mobile)
-    local minimizeButtonSize = self:IsMobile() and 45 or 35
+    -- Sombra no texto do título
+    local titleStroke = Instance.new("UIStroke")
+    titleStroke.Thickness = 1
+    titleStroke.Color = Color3.fromRGB(0, 0, 0)
+    titleStroke.Transparency = 0.5
+    titleStroke.Parent = self.title
+
+    -- Botão minimizar
     self.minimizeButton = Instance.new("TextButton")
     self.minimizeButton.Name = "MinimizeButton"
-    self.minimizeButton.Size = UDim2.new(0, minimizeButtonSize, 0, minimizeButtonSize)
-    self.minimizeButton.Position = UDim2.new(1, -95, 0, (self.headerHeight - minimizeButtonSize) / 2)
+    self.minimizeButton.Size = UDim2.new(0, 40, 0, 30)
+    self.minimizeButton.Position = UDim2.new(1, -90, 0, (self.headerHeight - 30) / 2)
     self.minimizeButton.BackgroundColor3 = self.Theme.MinimizeButton
     self.minimizeButton.BorderSizePixel = 0
-    self.minimizeButton.Text = "-"
+    self.minimizeButton.Text = "--"
     self.minimizeButton.TextColor3 = self.Theme.Text
-    self.minimizeButton.TextSize = self:IsMobile() and 20 or 16
+    self.minimizeButton.TextSize = self:IsMobile() and 16 or 14
     self.minimizeButton.Font = Enum.Font.GothamBold
+    self.minimizeButton.ZIndex = 3
     self.minimizeButton.Parent = self.header
 
     local minimizeCorner = Instance.new("UICorner")
-    minimizeCorner.CornerRadius = UDim.new(0, 8)
+    minimizeCorner.CornerRadius = UDim.new(0, 6)
     minimizeCorner.Parent = self.minimizeButton
 
-    -- Botão fechar (adaptado para mobile)
-    local closeButtonSize = self:IsMobile() and 45 or 35
+    -- Botão fechar
     self.closeButton = Instance.new("TextButton")
     self.closeButton.Name = "CloseButton"
-    self.closeButton.Size = UDim2.new(0, closeButtonSize, 0, closeButtonSize)
-    self.closeButton.Position = UDim2.new(1, -45, 0, (self.headerHeight - closeButtonSize) / 2)
+    self.closeButton.Size = UDim2.new(0, 30, 0, 30)
+    self.closeButton.Position = UDim2.new(1, -40, 0, (self.headerHeight - 30) / 2)
     self.closeButton.BackgroundColor3 = self.Theme.CloseButton
     self.closeButton.BorderSizePixel = 0
     self.closeButton.Text = "X"
     self.closeButton.TextColor3 = self.Theme.Text
-    self.closeButton.TextSize = self:IsMobile() and 18 or 14
+    self.closeButton.TextSize = self:IsMobile() and 16 or 14
     self.closeButton.Font = Enum.Font.GothamBold
+    self.closeButton.ZIndex = 3
     self.closeButton.Parent = self.header
 
     local closeCorner = Instance.new("UICorner")
-    closeCorner.CornerRadius = UDim.new(0, 8)
+    closeCorner.CornerRadius = UDim.new(0, 6)
     closeCorner.Parent = self.closeButton
 
-    -- Container de Tabs (maior no mobile)
-    self.tabsWidth = self:IsMobile() and 130 or 120
+    -- Container de Tabs
+    self.tabsWidth = self:IsMobile() and 140 or 120
     self.tabsContainer = Instance.new("Frame")
     self.tabsContainer.Name = "TabsContainer"
     self.tabsContainer.Size = UDim2.new(0, self.tabsWidth, 1, -self.headerHeight)
     self.tabsContainer.Position = UDim2.new(0, 0, 0, self.headerHeight)
     self.tabsContainer.BackgroundColor3 = self.Theme.Tab
     self.tabsContainer.BorderSizePixel = 0
+    self.tabsContainer.ZIndex = 2
     self.tabsContainer.Parent = self.mainFrame
+
+    -- Gradiente no container de tabs
+    local tabsGradient = Instance.new("UIGradient")
+    tabsGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, self.Theme.Tab),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(35, 35, 45))
+    })
+    tabsGradient.Rotation = 90
+    tabsGradient.Parent = self.tabsContainer
 
     -- Container de Conteúdo
     self.contentContainer = Instance.new("Frame")
@@ -212,6 +277,7 @@ function BeautifulGUI:CreateMainGUI()
     self.contentContainer.Size = UDim2.new(1, -self.tabsWidth, 1, -self.headerHeight)
     self.contentContainer.Position = UDim2.new(0, self.tabsWidth, 0, self.headerHeight)
     self.contentContainer.BackgroundTransparency = 1
+    self.contentContainer.ZIndex = 2
     self.contentContainer.Parent = self.mainFrame
 
     -- ScrollingFrame para conteúdo
@@ -221,39 +287,27 @@ function BeautifulGUI:CreateMainGUI()
     self.scrollingFrame.Position = UDim2.new(0, 0, 0, 0)
     self.scrollingFrame.BackgroundTransparency = 1
     self.scrollingFrame.BorderSizePixel = 0
-    self.scrollingFrame.ScrollBarThickness = self:IsMobile() and 10 or 4
+    self.scrollingFrame.ScrollBarThickness = self:IsMobile() and 6 or 3
     self.scrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
     self.scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+    self.scrollingFrame.ZIndex = 2
     self.scrollingFrame.Parent = self.contentContainer
 
     self.layout = Instance.new("UIListLayout")
     self.layout.Padding = UDim.new(0, self:IsMobile() and 15 or 10)
     self.layout.Parent = self.scrollingFrame
 
-    -- Frame minimizada (adaptada para mobile)
-    local minimizedWidth = self:IsMobile() and 250 or 200
+    -- Frame minimizado (apenas mostra o título)
     self.minimizedFrame = Instance.new("Frame")
     self.minimizedFrame.Name = "MinimizedFrame"
-    self.minimizedFrame.Size = UDim2.new(0, minimizedWidth, 0, self.headerHeight)
+    self.minimizedFrame.Size = UDim2.new(0, 200, 0, self.headerHeight)
     self.minimizedFrame.Position = self.Config.Position
     self.minimizedFrame.BackgroundColor3 = self.Theme.Header
     self.minimizedFrame.BackgroundTransparency = 0.1
     self.minimizedFrame.BorderSizePixel = 0
     self.minimizedFrame.Visible = false
+    self.minimizedFrame.ZIndex = 10
     self.minimizedFrame.Parent = self.screenGui
-
-    -- Sombra da frame minimizada
-    local minimizedShadow = Instance.new("ImageLabel")
-    minimizedShadow.Name = "MinimizedShadow"
-    minimizedShadow.Size = UDim2.new(1, 20, 1, 20)
-    minimizedShadow.Position = UDim2.new(0, -10, 0, -10)
-    minimizedShadow.BackgroundTransparency = 1
-    minimizedShadow.Image = "rbxassetid://2615687895"
-    minimizedShadow.ImageColor3 = Color3.new(0, 0, 0)
-    minimizedShadow.ImageTransparency = 0.8
-    minimizedShadow.ScaleType = Enum.ScaleType.Slice
-    minimizedShadow.SliceCenter = Rect.new(20, 20, 280, 280)
-    minimizedShadow.Parent = self.minimizedFrame
 
     local minimizedCorner = Instance.new("UICorner")
     minimizedCorner.CornerRadius = UDim.new(0, 15)
@@ -265,37 +319,94 @@ function BeautifulGUI:CreateMainGUI()
     minimizedStroke.Transparency = 0.3
     minimizedStroke.Parent = self.minimizedFrame
 
+    -- Gradiente na frame minimizada
+    local minimizedGradient = Instance.new("UIGradient")
+    minimizedGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, self.Theme.Header),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 40, 60))
+    })
+    minimizedGradient.Rotation = 90
+    minimizedGradient.Parent = self.minimizedFrame
+
     self.minimizedTitle = Instance.new("TextLabel")
     self.minimizedTitle.Name = "MinimizedTitle"
-    self.minimizedTitle.Size = UDim2.new(0.6, 0, 1, 0)
+    self.minimizedTitle.Size = UDim2.new(0.7, 0, 1, 0)
     self.minimizedTitle.Position = UDim2.new(0, 15, 0, 0)
     self.minimizedTitle.BackgroundTransparency = 1
     self.minimizedTitle.Text = self.Config.Name
     self.minimizedTitle.TextColor3 = self.Theme.Text
-    self.minimizedTitle.TextSize = self:IsMobile() and 18 or 14
+    self.minimizedTitle.TextSize = self:IsMobile() and 16 or 14
     self.minimizedTitle.Font = Enum.Font.GothamBold
     self.minimizedTitle.TextXAlignment = Enum.TextXAlignment.Left
+    self.minimizedTitle.ZIndex = 11
     self.minimizedTitle.Parent = self.minimizedFrame
 
-    local minimizedToggleSize = self:IsMobile() and 45 or 35
+    -- Sombra no texto minimizado
+    local minimizedTitleStroke = Instance.new("UIStroke")
+    minimizedTitleStroke.Thickness = 1
+    minimizedTitleStroke.Color = Color3.fromRGB(0, 0, 0)
+    minimizedTitleStroke.Transparency = 0.5
+    minimizedTitleStroke.Parent = self.minimizedTitle
+
     self.minimizedToggleButton = Instance.new("TextButton")
     self.minimizedToggleButton.Name = "MinimizedToggleButton"
-    self.minimizedToggleButton.Size = UDim2.new(0, minimizedToggleSize, 0, minimizedToggleSize)
-    self.minimizedToggleButton.Position = UDim2.new(1, -50, 0, (self.headerHeight - minimizedToggleSize) / 2)
+    self.minimizedToggleButton.Size = UDim2.new(0, 40, 0, 30)
+    self.minimizedToggleButton.Position = UDim2.new(1, -45, 0, (self.headerHeight - 30) / 2)
     self.minimizedToggleButton.BackgroundColor3 = self.Theme.MinimizeButton
     self.minimizedToggleButton.BorderSizePixel = 0
     self.minimizedToggleButton.Text = "+"
     self.minimizedToggleButton.TextColor3 = self.Theme.Text
-    self.minimizedToggleButton.TextSize = self:IsMobile() and 20 or 16
+    self.minimizedToggleButton.TextSize = self:IsMobile() and 16 or 14
     self.minimizedToggleButton.Font = Enum.Font.GothamBold
+    self.minimizedToggleButton.ZIndex = 11
     self.minimizedToggleButton.Parent = self.minimizedFrame
 
     local minimizedToggleCorner = Instance.new("UICorner")
-    minimizedToggleCorner.CornerRadius = UDim.new(0, 8)
+    minimizedToggleCorner.CornerRadius = UDim.new(0, 6)
     minimizedToggleCorner.Parent = self.minimizedToggleButton
 
-    -- Configurar eventos
+    -- Configurar eventos e iniciar animações
     self:SetupGUIEvents()
+    self:StartAnimations()
+end
+
+-- Iniciar animações
+function BeautifulGUI:StartAnimations()
+    -- Animação de partículas
+    if self.Config.EnableParticles and self.particlesFrame then
+        for _, particle in pairs(self.particlesFrame:GetChildren()) do
+            if particle:IsA("Frame") then
+                local randomX = math.random(-50, self.guiWidth + 50)
+                local randomY = math.random(-50, self.guiHeight + 50)
+                local randomTime = math.random(5, 15)
+                
+                local tween = TweenService:Create(
+                    particle,
+                    TweenInfo.new(randomTime, Enum.EasingStyle.Linear, Enum.EasingDirection.Out, -1, true),
+                    {Position = UDim2.new(0, randomX, 0, randomY)}
+                )
+                tween:Play()
+            end
+        end
+    end
+
+    -- Animação de pulso
+    if self.Config.EnablePulse and self.pulseRing then
+        local pulseTween = TweenService:Create(
+            self.pulseRing,
+            TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, -1, true),
+            {Size = UDim2.new(0, 160, 0, 160), BackgroundTransparency = 1}
+        )
+        pulseTween:Play()
+    end
+
+    -- Animação de brilho na borda
+    local glowTween = TweenService:Create(
+        self.mainFrame.UIStroke,
+        TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, -1, true),
+        {Transparency = 0.1}
+    )
+    glowTween:Play()
 end
 
 -- Configurar eventos da GUI
@@ -324,53 +435,30 @@ function BeautifulGUI:SetupGUIEvents()
     local mainDragging = false
     local mainDragStart, mainStartPos
 
-    local function startMainDrag(input)
+    self.header.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or 
            input.UserInputType == Enum.UserInputType.Touch then
             mainDragging = true
             mainDragStart = input.Position
             mainStartPos = self.mainFrame.Position
-            
-            -- Efeito durante o arraste
-            TweenService:Create(self.mainFrame, TweenInfo.new(0.2), {
-                BackgroundTransparency = 0.2,
-                Size = UDim2.new(0, self.guiWidth + 5, 0, self.guiHeight + 5)
-            }):Play()
-        end
-    end
-
-    local function endMainDrag()
-        if mainDragging then
-            mainDragging = false
-            TweenService:Create(self.mainFrame, TweenInfo.new(0.2), {
-                BackgroundTransparency = 0.1,
-                Size = UDim2.new(0, self.guiWidth, 0, self.guiHeight)
-            }):Play()
-        end
-    end
-
-    self.header.InputBegan:Connect(startMainDrag)
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or 
-           input.UserInputType == Enum.UserInputType.Touch then
-            endMainDrag()
         end
     end)
 
-    -- Atualizar posição durante o arraste
-    self.Connections.dragHeartbeat = RunService.Heartbeat:Connect(function()
-        if mainDragging then
-            local mousePos = UserInputService:GetMouseLocation()
-            local delta = mousePos - mainDragStart
-            local newX = mainStartPos.X.Offset + delta.X
-            local newY = mainStartPos.Y.Offset + delta.Y
-            
-            -- Limitar dentro da tela
-            local viewportSize = game:GetService("Workspace").CurrentCamera.ViewportSize
-            newX = math.clamp(newX, 0, viewportSize.X - self.guiWidth)
-            newY = math.clamp(newY, 0, viewportSize.Y - self.guiHeight)
-            
-            self.mainFrame.Position = UDim2.new(0, newX, 0, newY)
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or 
+           input.UserInputType == Enum.UserInputType.Touch then
+            mainDragging = false
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if mainDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or 
+                           input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - mainDragStart
+            self.mainFrame.Position = UDim2.new(
+                mainStartPos.X.Scale, mainStartPos.X.Offset + delta.X,
+                mainStartPos.Y.Scale, mainStartPos.Y.Offset + delta.Y
+            )
         end
     end)
 
@@ -378,52 +466,23 @@ function BeautifulGUI:SetupGUIEvents()
     local minimizedDragging = false
     local minimizedDragStart, minimizedStartPos
 
-    local function startMinimizedDrag(input)
+    self.minimizedFrame.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or 
            input.UserInputType == Enum.UserInputType.Touch then
             minimizedDragging = true
             minimizedDragStart = input.Position
             minimizedStartPos = self.minimizedFrame.Position
-            
-            -- Efeito durante o arraste
-            TweenService:Create(self.minimizedFrame, TweenInfo.new(0.2), {
-                BackgroundTransparency = 0.2
-            }):Play()
-        end
-    end
-
-    local function endMinimizedDrag()
-        if minimizedDragging then
-            minimizedDragging = false
-            TweenService:Create(self.minimizedFrame, TweenInfo.new(0.2), {
-                BackgroundTransparency = 0.1
-            }):Play()
-        end
-    end
-
-    self.minimizedFrame.InputBegan:Connect(startMinimizedDrag)
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or 
-           input.UserInputType == Enum.UserInputType.Touch then
-            endMinimizedDrag()
         end
     end)
 
-    -- Atualizar posição da frame minimizada durante o arraste
-    self.Connections.minimizedDragHeartbeat = RunService.Heartbeat:Connect(function()
-        if minimizedDragging then
-            local mousePos = UserInputService:GetMouseLocation()
-            local delta = mousePos - minimizedDragStart
-            local newX = minimizedStartPos.X.Offset + delta.X
-            local newY = minimizedStartPos.Y.Offset + delta.Y
-            
-            -- Limitar dentro da tela
-            local viewportSize = game:GetService("Workspace").CurrentCamera.ViewportSize
-            local minimizedWidth = self.minimizedFrame.AbsoluteSize.X
-            newX = math.clamp(newX, 0, viewportSize.X - minimizedWidth)
-            newY = math.clamp(newY, 0, viewportSize.Y - self.headerHeight)
-            
-            self.minimizedFrame.Position = UDim2.new(0, newX, 0, newY)
+    UserInputService.InputChanged:Connect(function(input)
+        if minimizedDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or 
+                               input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - minimizedDragStart
+            self.minimizedFrame.Position = UDim2.new(
+                minimizedStartPos.X.Scale, minimizedStartPos.X.Offset + delta.X,
+                minimizedStartPos.Y.Scale, minimizedStartPos.Y.Offset + delta.Y
+            )
         end
     end)
 
@@ -431,71 +490,323 @@ function BeautifulGUI:SetupGUIEvents()
     if not self:IsMobile() then
         -- Botão minimizar
         self.minimizeButton.MouseEnter:Connect(function()
-            TweenService:Create(self.minimizeButton, TweenInfo.new(0.3), {
+            TweenService:Create(self.minimizeButton, TweenInfo.new(0.2), {
                 BackgroundColor3 = self.Theme.MinimizeButtonHover,
-                Size = UDim2.new(0, 40, 0, 40)
+                Size = UDim2.new(0, 42, 0, 32)
             }):Play()
         end)
 
         self.minimizeButton.MouseLeave:Connect(function()
-            TweenService:Create(self.minimizeButton, TweenInfo.new(0.3), {
+            TweenService:Create(self.minimizeButton, TweenInfo.new(0.2), {
                 BackgroundColor3 = self.Theme.MinimizeButton,
-                Size = UDim2.new(0, 35, 0, 35)
+                Size = UDim2.new(0, 40, 0, 30)
             }):Play()
         end)
 
         -- Botão fechar
         self.closeButton.MouseEnter:Connect(function()
-            TweenService:Create(self.closeButton, TweenInfo.new(0.3), {
+            TweenService:Create(self.closeButton, TweenInfo.new(0.2), {
                 BackgroundColor3 = self.Theme.CloseButtonHover,
-                Size = UDim2.new(0, 40, 0, 40)
+                Size = UDim2.new(0, 32, 0, 32)
             }):Play()
         end)
 
         self.closeButton.MouseLeave:Connect(function()
-            TweenService:Create(self.closeButton, TweenInfo.new(0.3), {
+            TweenService:Create(self.closeButton, TweenInfo.new(0.2), {
+                BackgroundColor3 = self.Theme.CloseButton
+    self.closeButton.BorderSizePixel = 0
+    self.closeButton.Text = "X"
+    self.closeButton.TextColor3 = self.Theme.Text
+    self.closeButton.TextSize = self:IsMobile() and 16 or 14
+    self.closeButton.Font = Enum.Font.GothamBold
+    self.closeButton.ZIndex = 3
+    self.closeButton.Parent = self.header
+
+    local closeCorner = Instance.new("UICorner")
+    closeCorner.CornerRadius = UDim.new(0, 6)
+    closeCorner.Parent = self.closeButton
+
+    -- Container de Tabs
+    self.tabsWidth = self:IsMobile() and 140 or 120
+    self.tabsContainer = Instance.new("Frame")
+    self.tabsContainer.Name = "TabsContainer"
+    self.tabsContainer.Size = UDim2.new(0, self.tabsWidth, 1, -self.headerHeight)
+    self.tabsContainer.Position = UDim2.new(0, 0, 0, self.headerHeight)
+    self.tabsContainer.BackgroundColor3 = self.Theme.Tab
+    self.tabsContainer.BorderSizePixel = 0
+    self.tabsContainer.ZIndex = 2
+    self.tabsContainer.Parent = self.mainFrame
+
+    -- Gradiente no container de tabs
+    local tabsGradient = Instance.new("UIGradient")
+    tabsGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, self.Theme.Tab),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(35, 35, 45))
+    })
+    tabsGradient.Rotation = 90
+    tabsGradient.Parent = self.tabsContainer
+
+    -- Container de Conteúdo
+    self.contentContainer = Instance.new("Frame")
+    self.contentContainer.Name = "ContentContainer"
+    self.contentContainer.Size = UDim2.new(1, -self.tabsWidth, 1, -self.headerHeight)
+    self.contentContainer.Position = UDim2.new(0, self.tabsWidth, 0, self.headerHeight)
+    self.contentContainer.BackgroundTransparency = 1
+    self.contentContainer.ZIndex = 2
+    self.contentContainer.Parent = self.mainFrame
+
+    -- ScrollingFrame para conteúdo
+    self.scrollingFrame = Instance.new("ScrollingFrame")
+    self.scrollingFrame.Name = "ScrollingFrame"
+    self.scrollingFrame.Size = UDim2.new(1, 0, 1, 0)
+    self.scrollingFrame.Position = UDim2.new(0, 0, 0, 0)
+    self.scrollingFrame.BackgroundTransparency = 1
+    self.scrollingFrame.BorderSizePixel = 0
+    self.scrollingFrame.ScrollBarThickness = self:IsMobile() and 6 or 3
+    self.scrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
+    self.scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+    self.scrollingFrame.ZIndex = 2
+    self.scrollingFrame.Parent = self.contentContainer
+
+    self.layout = Instance.new("UIListLayout")
+    self.layout.Padding = UDim.new(0, self:IsMobile() and 15 or 10)
+    self.layout.Parent = self.scrollingFrame
+
+    -- Frame minimizado (apenas mostra o título)
+    self.minimizedFrame = Instance.new("Frame")
+    self.minimizedFrame.Name = "MinimizedFrame"
+    self.minimizedFrame.Size = UDim2.new(0, 200, 0, self.headerHeight)
+    self.minimizedFrame.Position = self.Config.Position
+    self.minimizedFrame.BackgroundColor3 = self.Theme.Header
+    self.minimizedFrame.BackgroundTransparency = 0.1
+    self.minimizedFrame.BorderSizePixel = 0
+    self.minimizedFrame.Visible = false
+    self.minimizedFrame.ZIndex = 10
+    self.minimizedFrame.Parent = self.screenGui
+
+    local minimizedCorner = Instance.new("UICorner")
+    minimizedCorner.CornerRadius = UDim.new(0, 15)
+    minimizedCorner.Parent = self.minimizedFrame
+
+    local minimizedStroke = Instance.new("UIStroke")
+    minimizedStroke.Thickness = 2
+    minimizedStroke.Color = Color3.fromRGB(100, 100, 255)
+    minimizedStroke.Transparency = 0.3
+    minimizedStroke.Parent = self.minimizedFrame
+
+    -- Gradiente na frame minimizada
+    local minimizedGradient = Instance.new("UIGradient")
+    minimizedGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, self.Theme.Header),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 40, 60))
+    })
+    minimizedGradient.Rotation = 90
+    minimizedGradient.Parent = self.minimizedFrame
+
+    self.minimizedTitle = Instance.new("TextLabel")
+    self.minimizedTitle.Name = "MinimizedTitle"
+    self.minimizedTitle.Size = UDim2.new(0.7, 0, 1, 0)
+    self.minimizedTitle.Position = UDim2.new(0, 15, 0, 0)
+    self.minimizedTitle.BackgroundTransparency = 1
+    self.minimizedTitle.Text = self.Config.Name
+    self.minimizedTitle.TextColor3 = self.Theme.Text
+    self.minimizedTitle.TextSize = self:IsMobile() and 16 or 14
+    self.minimizedTitle.Font = Enum.Font.GothamBold
+    self.minimizedTitle.TextXAlignment = Enum.TextXAlignment.Left
+    self.minimizedTitle.ZIndex = 11
+    self.minimizedTitle.Parent = self.minimizedFrame
+
+    -- Sombra no texto minimizado
+    local minimizedTitleStroke = Instance.new("UIStroke")
+    minimizedTitleStroke.Thickness = 1
+    minimizedTitleStroke.Color = Color3.fromRGB(0, 0, 0)
+    minimizedTitleStroke.Transparency = 0.5
+    minimizedTitleStroke.Parent = self.minimizedTitle
+
+    self.minimizedToggleButton = Instance.new("TextButton")
+    self.minimizedToggleButton.Name = "MinimizedToggleButton"
+    self.minimizedToggleButton.Size = UDim2.new(0, 40, 0, 30)
+    self.minimizedToggleButton.Position = UDim2.new(1, -45, 0, (self.headerHeight - 30) / 2)
+    self.minimizedToggleButton.BackgroundColor3 = self.Theme.MinimizeButton
+    self.minimizedToggleButton.BorderSizePixel = 0
+    self.minimizedToggleButton.Text = "+"
+    self.minimizedToggleButton.TextColor3 = self.Theme.Text
+    self.minimizedToggleButton.TextSize = self:IsMobile() and 16 or 14
+    self.minimizedToggleButton.Font = Enum.Font.GothamBold
+    self.minimizedToggleButton.ZIndex = 11
+    self.minimizedToggleButton.Parent = self.minimizedFrame
+
+    local minimizedToggleCorner = Instance.new("UICorner")
+    minimizedToggleCorner.CornerRadius = UDim.new(0, 6)
+    minimizedToggleCorner.Parent = self.minimizedToggleButton
+
+    -- Configurar eventos e iniciar animações
+    self:SetupGUIEvents()
+    self:StartAnimations()
+end
+
+-- Iniciar animações
+function BeautifulGUI:StartAnimations()
+    -- Animação de partículas
+    if self.Config.EnableParticles and self.particlesFrame then
+        for _, particle in pairs(self.particlesFrame:GetChildren()) do
+            if particle:IsA("Frame") then
+                local randomX = math.random(-50, self.guiWidth + 50)
+                local randomY = math.random(-50, self.guiHeight + 50)
+                local randomTime = math.random(5, 15)
+                
+                local tween = TweenService:Create(
+                    particle,
+                    TweenInfo.new(randomTime, Enum.EasingStyle.Linear, Enum.EasingDirection.Out, -1, true),
+                    {Position = UDim2.new(0, randomX, 0, randomY)}
+                )
+                tween:Play()
+            end
+        end
+    end
+
+    -- Animação de pulso
+    if self.Config.EnablePulse and self.pulseRing then
+        local pulseTween = TweenService:Create(
+            self.pulseRing,
+            TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, -1, true),
+            {Size = UDim2.new(0, 160, 0, 160), BackgroundTransparency = 1}
+        )
+        pulseTween:Play()
+    end
+
+    -- Animação de brilho na borda
+    local glowTween = TweenService:Create(
+        self.mainFrame.UIStroke,
+        TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, -1, true),
+        {Transparency = 0.1}
+    )
+    glowTween:Play()
+end
+
+-- Configurar eventos da GUI
+function BeautifulGUI:SetupGUIEvents()
+    -- Botão fechar
+    self.closeButton.MouseButton1Click:Connect(function()
+        self:Hide()
+    end)
+
+    -- Botão minimizar
+    self.minimizeButton.MouseButton1Click:Connect(function()
+        self:Minimize()
+    end)
+
+    -- Botão expandir (na frame minimizada)
+    self.minimizedToggleButton.MouseButton1Click:Connect(function()
+        self:Maximize()
+    end)
+
+    -- Atualizar canvas size
+    self.layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        self.scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.layout.AbsoluteContentSize.Y)
+    end)
+
+    -- Sistema de drag para a GUI principal
+    local mainDragging = false
+    local mainDragStart, mainStartPos
+
+    self.header.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or 
+           input.UserInputType == Enum.UserInputType.Touch then
+            mainDragging = true
+            mainDragStart = input.Position
+            mainStartPos = self.mainFrame.Position
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or 
+           input.UserInputType == Enum.UserInputType.Touch then
+            mainDragging = false
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if mainDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or 
+                           input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - mainDragStart
+            self.mainFrame.Position = UDim2.new(
+                mainStartPos.X.Scale, mainStartPos.X.Offset + delta.X,
+                mainStartPos.Y.Scale, mainStartPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+
+    -- Sistema de drag para a frame minimizada
+    local minimizedDragging = false
+    local minimizedDragStart, minimizedStartPos
+
+    self.minimizedFrame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or 
+           input.UserInputType == Enum.UserInputType.Touch then
+            minimizedDragging = true
+            minimizedDragStart = input.Position
+            minimizedStartPos = self.minimizedFrame.Position
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if minimizedDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or 
+                               input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - minimizedDragStart
+            self.minimizedFrame.Position = UDim2.new(
+                minimizedStartPos.X.Scale, minimizedStartPos.X.Offset + delta.X,
+                minimizedStartPos.Y.Scale, minimizedStartPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+
+    -- Efeitos hover para botões (apenas no PC)
+    if not self:IsMobile() then
+        -- Botão minimizar
+        self.minimizeButton.MouseEnter:Connect(function()
+            TweenService:Create(self.minimizeButton, TweenInfo.new(0.2), {
+                BackgroundColor3 = self.Theme.MinimizeButtonHover,
+                Size = UDim2.new(0, 42, 0, 32)
+            }):Play()
+        end)
+
+        self.minimizeButton.MouseLeave:Connect(function()
+            TweenService:Create(self.minimizeButton, TweenInfo.new(0.2), {
+                BackgroundColor3 = self.Theme.MinimizeButton,
+                Size = UDim2.new(0, 40, 0, 30)
+            }):Play()
+        end)
+
+        -- Botão fechar
+        self.closeButton.MouseEnter:Connect(function()
+            TweenService:Create(self.closeButton, TweenInfo.new(0.2), {
+                BackgroundColor3 = self.Theme.CloseButtonHover,
+                Size = UDim2.new(0, 32, 0, 32)
+            }):Play()
+        end)
+
+        self.closeButton.MouseLeave:Connect(function()
+            TweenService:Create(self.closeButton, TweenInfo.new(0.2), {
                 BackgroundColor3 = self.Theme.CloseButton,
-                Size = UDim2.new(0, 35, 0, 35)
+                Size = UDim2.new(0, 30, 0, 30)
             }):Play()
         end)
 
         -- Botão expandir minimizado
         self.minimizedToggleButton.MouseEnter:Connect(function()
-            TweenService:Create(self.minimizedToggleButton, TweenInfo.new(0.3), {
+            TweenService:Create(self.minimizedToggleButton, TweenInfo.new(0.2), {
                 BackgroundColor3 = self.Theme.MinimizeButtonHover,
-                Size = UDim2.new(0, 40, 0, 40)
+                Size = UDim2.new(0, 42, 0, 32)
             }):Play()
         end)
 
         self.minimizedToggleButton.MouseLeave:Connect(function()
-            TweenService:Create(self.minimizedToggleButton, TweenInfo.new(0.3), {
+            TweenService:Create(self.minimizedToggleButton, TweenInfo.new(0.2), {
                 BackgroundColor3 = self.Theme.MinimizeButton,
-                Size = UDim2.new(0, 35, 0, 35)
+                Size = UDim2.new(0, 40, 0, 30)
             }):Play()
         end)
-    else
-        -- Efeitos para mobile (toque)
-        local function buttonTouchEffect(button)
-            button.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.Touch then
-                    TweenService:Create(button, TweenInfo.new(0.1), {
-                        BackgroundTransparency = 0.3
-                    }):Play()
-                end
-            end)
-
-            button.InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.Touch then
-                    TweenService:Create(button, TweenInfo.new(0.1), {
-                        BackgroundTransparency = 0
-                    }):Play()
-                end
-            end)
-        end
-
-        buttonTouchEffect(self.minimizeButton)
-        buttonTouchEffect(self.closeButton)
-        buttonTouchEffect(self.minimizedToggleButton)
     end
 end
 
@@ -506,20 +817,17 @@ end
 -- Minimizar GUI
 function BeautifulGUI:Minimize()
     if self.isMinimized then return end
-self.isMinimized = true
+    
+    self.isMinimized = true
     
     -- Salvar posição atual
     self.savedPosition = self.mainFrame.Position
     
-    -- Animação de minimização com efeitos
+    -- Animação de minimização
     local minimizeTween = TweenService:Create(
         self.mainFrame,
-        TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In),
-        {
-            Size = UDim2.new(0, 0, 0, 0), 
-            BackgroundTransparency = 1,
-            Position = UDim2.new(0.5, 0, 0.5, 0)
-        }
+        TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In),
+        {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1}
     )
     
     minimizeTween:Play()
@@ -528,19 +836,10 @@ self.isMinimized = true
         self.minimizedFrame.Visible = true
         self.minimizedFrame.Position = self.savedPosition
         
-        -- Efeito de entrada da frame minimizada
-        self.minimizedFrame.Size = UDim2.new(0, 0, 0, self.headerHeight)
-        self.minimizedFrame.BackgroundTransparency = 1
-        
-        local minimizedEntrance = TweenService:Create(
-            self.minimizedFrame,
-            TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-            {
-                Size = UDim2.new(0, self:IsMobile() and 250 or 200, 0, self.headerHeight),
-                BackgroundTransparency = 0.1
-            }
-        )
-        minimizedEntrance:Play()
+        -- Parar animações da GUI principal
+        if self.pulseRing then
+            self.pulseRing.Visible = false
+        end
     end)
 end
 
@@ -553,36 +852,30 @@ function BeautifulGUI:Maximize()
     -- Salvar posição da frame minimizada
     self.savedPosition = self.minimizedFrame.Position
     
-    -- Animação de saída da frame minimizada
-    local minimizedExit = TweenService:Create(
-        self.minimizedFrame,
-        TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In),
+    -- Esconder frame minimizada
+    self.minimizedFrame.Visible = false
+    
+    -- Mostrar e animar frame principal
+    self.mainFrame.Visible = true
+    self.mainFrame.Size = UDim2.new(0, 0, 0, 0)
+    self.mainFrame.BackgroundTransparency = 1
+    self.mainFrame.Position = self.savedPosition
+    
+    local maximizeTween = TweenService:Create(
+        self.mainFrame,
+        TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
         {
-            Size = UDim2.new(0, 0, 0, self.headerHeight),
-            BackgroundTransparency = 1
+            Size = UDim2.new(0, self.guiWidth, 0, self.guiHeight), 
+            BackgroundTransparency = 0.1
         }
     )
     
-    minimizedExit:Play()
-    minimizedExit.Completed:Connect(function()
-        self.minimizedFrame.Visible = false
-        
-        -- Mostrar e animar frame principal
-        self.mainFrame.Visible = true
-        self.mainFrame.Size = UDim2.new(0, 0, 0, 0)
-        self.mainFrame.BackgroundTransparency = 1
-        self.mainFrame.Position = self.savedPosition
-        
-        local maximizeTween = TweenService:Create(
-            self.mainFrame,
-            TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-            {
-                Size = UDim2.new(0, self.guiWidth, 0, self.guiHeight), 
-                BackgroundTransparency = 0.1
-            }
-        )
-        
-        maximizeTween:Play()
+    maximizeTween:Play()
+    maximizeTween.Completed:Connect(function()
+        -- Retomar animações
+        if self.pulseRing then
+            self.pulseRing.Visible = true
+        end
     end)
 end
 
@@ -595,20 +888,6 @@ function BeautifulGUI:Show()
         self.mainFrame.Visible = true
         self.minimizedFrame.Visible = false
         
-        -- Efeito de entrada
-        self.mainFrame.Size = UDim2.new(0, 0, 0, 0)
-        self.mainFrame.BackgroundTransparency = 1
-        
-        local entranceTween = TweenService:Create(
-            self.mainFrame,
-            TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-            {
-                Size = UDim2.new(0, self.guiWidth, 0, self.guiHeight),
-                BackgroundTransparency = 0.1
-            }
-        )
-        entranceTween:Play()
-        
         if self.blurEffect then
             self.blurEffect.Enabled = true
         end
@@ -618,23 +897,10 @@ end
 
 -- Esconder GUI
 function BeautifulGUI:Hide()
-    local exitTween = TweenService:Create(
-        self.mainFrame,
-        TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In),
-        {
-            Size = UDim2.new(0, 0, 0, 0),
-            BackgroundTransparency = 1
-        }
-    )
-    
-    exitTween:Play()
-    exitTween.Completed:Connect(function()
-        self.screenGui.Enabled = false
-        if self.blurEffect then
-            self.blurEffect.Enabled = false
-        end
-    end)
-    
+    self.screenGui.Enabled = false
+    if self.blurEffect then
+        self.blurEffect.Enabled = false
+    end
     self.guiVisible = false
 end
 
@@ -669,7 +935,7 @@ function BeautifulGUI:CreateTab(tabName)
     }
     
     -- Botão da Tab
-    local tabHeight = self:IsMobile() and 50 or 35
+    local tabHeight = self:IsMobile() and 45 or 35
     local tabButton = Instance.new("TextButton")
     tabButton.Name = tabName .. "Tab"
     tabButton.Size = UDim2.new(1, -10, 0, tabHeight)
@@ -678,26 +944,26 @@ function BeautifulGUI:CreateTab(tabName)
     tabButton.BorderSizePixel = 0
     tabButton.Text = tabName
     tabButton.TextColor3 = self.Theme.TextSecondary
-    tabButton.TextSize = self:IsMobile() and 18 or 14
+    tabButton.TextSize = self:IsMobile() and 16 or 14
     tabButton.Font = Enum.Font.Gotham
     tabButton.Parent = self.tabsContainer
     
     local tabCorner = Instance.new("UICorner")
-    tabCorner.CornerRadius = UDim.new(0, 8)
+    tabCorner.CornerRadius = UDim.new(0, 6)
     tabCorner.Parent = tabButton
     
-    -- Efeitos hover para tabs (apenas no PC)
+    -- Efeito hover para tabs (apenas no PC)
     if not self:IsMobile() then
         tabButton.MouseEnter:Connect(function()
-            if tab ~= self.CurrentTab then
+            if tabButton.BackgroundColor3 ~= self.Theme.TabSelected then
                 TweenService:Create(tabButton, TweenInfo.new(0.2), {
-                    BackgroundColor3 = Color3.fromRGB(50, 50, 65)
+                    BackgroundColor3 = Color3.fromRGB(50, 50, 70)
                 }):Play()
             end
         end)
         
         tabButton.MouseLeave:Connect(function()
-            if tab ~= self.CurrentTab then
+            if tabButton.BackgroundColor3 ~= self.Theme.TabSelected then
                 TweenService:Create(tabButton, TweenInfo.new(0.2), {
                     BackgroundColor3 = self.Theme.Tab
                 }):Play()
@@ -740,17 +1006,18 @@ function BeautifulGUI:SwitchTab(tabName)
     for _, tab in pairs(self.Tabs) do
         if tab.Name == tabName then
             tab.Container.Visible = true
-            TweenService:Create(tab.Button, TweenInfo.new(0.3), {
-                BackgroundColor3 = self.Theme.TabSelected,
-                TextColor3 = self.Theme.Text
-            }):Play()
+            tab.Button.BackgroundColor3 = self.Theme.TabSelected
+            tab.Button.TextColor3 = self.Theme.Text
             self.CurrentTab = tab
+            
+            -- Efeito de transição
+            TweenService:Create(tab.Button, TweenInfo.new(0.3), {
+                BackgroundColor3 = self.Theme.TabSelected
+            }):Play()
         else
             tab.Container.Visible = false
-            TweenService:Create(tab.Button, TweenInfo.new(0.3), {
-                BackgroundColor3 = self.Theme.Tab,
-                TextColor3 = self.Theme.TextSecondary
-            }):Play()
+            tab.Button.BackgroundColor3 = self.Theme.Tab
+            tab.Button.TextColor3 = self.Theme.TextSecondary
         end
     end
 end
@@ -762,7 +1029,7 @@ function BeautifulGUI:CreateSection(sectionName, parentTab)
     
     local section = Instance.new("Frame")
     section.Name = sectionName .. "Section"
-    section.Size = UDim2.new(1, -20, 0, self:IsMobile() and 45 or 35)
+    section.Size = UDim2.new(1, -20, 0, self:IsMobile() and 40 or 30)
     section.BackgroundTransparency = 1
     section.Parent = tab.Container
     
@@ -770,12 +1037,19 @@ function BeautifulGUI:CreateSection(sectionName, parentTab)
     sectionLabel.Name = "Label"
     sectionLabel.Size = UDim2.new(1, 0, 1, 0)
     sectionLabel.BackgroundTransparency = 1
-    sectionLabel.Text = "│ " .. sectionName:upper()
-    sectionLabel.TextColor3 = self.Theme.Text
-    sectionLabel.TextSize = self:IsMobile() and 20 or 16
+    sectionLabel.Text = "▸ " .. sectionName:upper()
+    sectionLabel.TextColor3 = Color3.fromRGB(100, 200, 255)
+    sectionLabel.TextSize = self:IsMobile() and 18 or 16
     sectionLabel.Font = Enum.Font.GothamBold
     sectionLabel.TextXAlignment = Enum.TextXAlignment.Left
     sectionLabel.Parent = section
+    
+    -- Sombra no texto da section
+    local sectionStroke = Instance.new("UIStroke")
+    sectionStroke.Thickness = 1
+    sectionStroke.Color = Color3.fromRGB(0, 0, 0)
+    sectionStroke.Transparency = 0.3
+    sectionStroke.Parent = sectionLabel
     
     return section
 end
@@ -785,7 +1059,7 @@ function BeautifulGUI:CreateButton(buttonConfig, parentTab)
     local tab = parentTab or self.CurrentTab
     if not tab then return end
     
-    local buttonHeight = self:IsMobile() and 50 or 35
+    local buttonHeight = self:IsMobile() and 45 or 35
     local button = Instance.new("TextButton")
     button.Name = buttonConfig.Name .. "Button"
     button.Size = UDim2.new(1, -20, 0, buttonHeight)
@@ -793,20 +1067,27 @@ function BeautifulGUI:CreateButton(buttonConfig, parentTab)
     button.BorderSizePixel = 0
     button.Text = buttonConfig.Text or buttonConfig.Name
     button.TextColor3 = self.Theme.Text
-    button.TextSize = self:IsMobile() and 18 or 14
+    button.TextSize = self:IsMobile() and 16 or 14
     button.Font = Enum.Font.Gotham
     button.Parent = tab.Container
     
     local buttonCorner = Instance.new("UICorner")
-    buttonCorner.CornerRadius = UDim.new(0, 10)
+    buttonCorner.CornerRadius = UDim.new(0, 8)
     buttonCorner.Parent = button
+    
+    -- Sombra no botão
+    local buttonStroke = Instance.new("UIStroke")
+    buttonStroke.Thickness = 1
+    buttonStroke.Color = Color3.fromRGB(0, 0, 0)
+    buttonStroke.Transparency = 0.5
+    buttonStroke.Parent = button
     
     -- Efeito hover (apenas no PC)
     if not self:IsMobile() then
         button.MouseEnter:Connect(function()
             TweenService:Create(button, TweenInfo.new(0.2), {
                 BackgroundColor3 = self.Theme.ButtonHover,
-                Size = UDim2.new(1, -15, 0, buttonHeight + 5)
+                Size = UDim2.new(1, -18, 0, buttonHeight + 2)
             }):Play()
         end)
         
@@ -815,25 +1096,6 @@ function BeautifulGUI:CreateButton(buttonConfig, parentTab)
                 BackgroundColor3 = self.Theme.Button,
                 Size = UDim2.new(1, -20, 0, buttonHeight)
             }):Play()
-        end)
-    else
-        -- Efeito de toque para mobile
-        button.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.Touch then
-                TweenService:Create(button, TweenInfo.new(0.1), {
-                    BackgroundColor3 = self.Theme.ButtonHover,
-                    BackgroundTransparency = 0.2
-                }):Play()
-            end
-        end)
-        
-        button.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.Touch then
-                TweenService:Create(button, TweenInfo.new(0.1), {
-                    BackgroundColor3 = self.Theme.Button,
-                    BackgroundTransparency = 0
-                }):Play()
-            end
         end)
     end
     
@@ -852,7 +1114,7 @@ function BeautifulGUI:CreateToggle(toggleConfig, parentTab)
     
     local toggleFrame = Instance.new("Frame")
     toggleFrame.Name = toggleConfig.Name .. "Toggle"
-    toggleFrame.Size = UDim2.new(1, -20, 0, self:IsMobile() and 45 or 35)
+    toggleFrame.Size = UDim2.new(1, -20, 0, self:IsMobile() and 40 or 30)
     toggleFrame.BackgroundTransparency = 1
     toggleFrame.Parent = tab.Container
     
@@ -863,17 +1125,17 @@ function BeautifulGUI:CreateToggle(toggleConfig, parentTab)
     toggleLabel.BackgroundTransparency = 1
     toggleLabel.Text = toggleConfig.Text or toggleConfig.Name
     toggleLabel.TextColor3 = self.Theme.Text
-    toggleLabel.TextSize = self:IsMobile() and 18 or 14
+    toggleLabel.TextSize = self:IsMobile() and 16 or 14
     toggleLabel.Font = Enum.Font.Gotham
     toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
     toggleLabel.Parent = toggleFrame
     
     -- Calcular valores baseados na plataforma ANTES de usar no UDim2
-    local toggleWidth = self:IsMobile() and 70 or 50
-    local toggleHeight = self:IsMobile() and 35 or 25
-    local toggleYPos = self:IsMobile() and 5 or 5
-    local dotSize = self:IsMobile() and 30 or 21
-    
+    local toggleWidth = self:IsMobile() and 60 or 50
+    local toggleHeight = self:IsMobile() and 30 or 25
+    local toggleYPos = self:IsMobile() and 5 or 2
+    local dotSize = self:IsMobile() and 26 or 21
+
     local toggleButton = Instance.new("TextButton")
     toggleButton.Name = "Toggle"
     toggleButton.Size = UDim2.new(0, toggleWidth, 0, toggleHeight)
@@ -906,38 +1168,23 @@ function BeautifulGUI:CreateToggle(toggleConfig, parentTab)
         local dotPositionX = state and (toggleWidth - dotSize - 2) or 2
         
         if state then
-            TweenService:Create(toggleButton, TweenInfo.new(0.3), {
+            TweenService:Create(toggleButton, TweenInfo.new(0.2), {
                 BackgroundColor3 = Color3.fromRGB(60, 180, 100)
             }):Play()
-            TweenService:Create(toggleDot, TweenInfo.new(0.3), {
+            TweenService:Create(toggleDot, TweenInfo.new(0.2), {
                 Position = UDim2.new(0, dotPositionX, 0, 2)
             }):Play()
         else
-            TweenService:Create(toggleButton, TweenInfo.new(0.3), {
+            TweenService:Create(toggleButton, TweenInfo.new(0.2), {
                 BackgroundColor3 = Color3.fromRGB(60, 60, 70)
             }):Play()
-            TweenService:Create(toggleDot, TweenInfo.new(0.3), {
+            TweenService:Create(toggleDot, TweenInfo.new(0.2), {
                 Position = UDim2.new(0, dotPositionX, 0, 2)
             }):Play()
         end
     end
     
     updateToggle()
-    
-    -- Efeitos para o toggle
-    if not self:IsMobile() then
-        toggleButton.MouseEnter:Connect(function()
-            TweenService:Create(toggleButton, TweenInfo.new(0.2), {
-                Size = UDim2.new(0, toggleWidth + 5, 0, toggleHeight + 5)
-            }):Play()
-        end)
-        
-        toggleButton.MouseLeave:Connect(function()
-            TweenService:Create(toggleButton, TweenInfo.new(0.2), {
-                Size = UDim2.new(0, toggleWidth, 0, toggleHeight)
-            }):Play()
-        end)
-    end
     
     -- Evento
     toggleButton.MouseButton1Click:Connect(function()
