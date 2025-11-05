@@ -1,6 +1,6 @@
 -- BeautifulGUI Library
 -- Versão: 2.0 - Compatível com PC e Mobile
--- Features: Botão flutuante, Tabs, Buttons, Sistema de arraste multiplataforma
+-- Features: Botão de minimizar, Tabs, Buttons
 
 local BeautifulGUI = {}
 BeautifulGUI.__index = BeautifulGUI
@@ -15,8 +15,7 @@ local Players = game:GetService("Players")
 local DefaultConfig = {
     Name = "BeautifulGUI",
     Theme = "Dark",
-    Position = UDim2.new(0, 20, 0.5, -30),
-    ButtonSize = 60,
+    Position = UDim2.new(0.5, -250, 0.5, -200),
     EnableBlur = false
 }
 
@@ -32,7 +31,9 @@ local Themes = {
         Button = Color3.fromRGB(60, 100, 255),
         ButtonHover = Color3.fromRGB(80, 120, 255),
         CloseButton = Color3.fromRGB(255, 80, 80),
-        CloseButtonHover = Color3.fromRGB(255, 100, 100)
+        CloseButtonHover = Color3.fromRGB(255, 100, 100),
+        MinimizeButton = Color3.fromRGB(255, 180, 60),
+        MinimizeButtonHover = Color3.fromRGB(255, 200, 80)
     }
 }
 
@@ -44,7 +45,8 @@ function BeautifulGUI.new(config)
     self.Tabs = {}
     self.CurrentTab = nil
     self.Connections = {}
-    self.guiVisible = false
+    self.guiVisible = true
+    self.isMinimized = false
     
     -- Detectar plataforma
     self.isMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
@@ -63,159 +65,11 @@ function BeautifulGUI:Initialize()
     self.player = Players.LocalPlayer
     self.playerGui = self.player:WaitForChild("PlayerGui")
     
-    self:CreateFloatButton()
     self:CreateMainGUI()
     
     print("🎮 BeautifulGUI Carregada!")
     print("📟 Plataforma: " .. (self:IsMobile() and "📱 MOBILE" or "🖥️ PC"))
-    print("📍 Clique no botão flutuante para abrir/fechar")
-    print("🖱️ Segure e arraste para mover o botão")
-end
-
--- =============================================
--- BOTÃO FLUTUANTE (PC E MOBILE)
--- =============================================
-
-function BeautifulGUI:CreateFloatButton()
-    -- ScreenGui para o botão flutuante
-    self.floatGui = Instance.new("ScreenGui")
-    self.floatGui.Name = "FloatButtonGui"
-    self.floatGui.Parent = self.playerGui
-    self.floatGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    self.floatGui.ResetOnSpawn = false
-
-    -- Botão flutuante
-    self.floatButton = Instance.new("ImageButton")
-    self.floatButton.Name = "FloatButton"
-    self.floatButton.Size = UDim2.new(0, self.Config.ButtonSize, 0, self.Config.ButtonSize)
-    self.floatButton.Position = self.Config.Position
-    self.floatButton.BackgroundColor3 = self.Theme.Button
-    self.floatButton.BackgroundTransparency = 0.1
-    self.floatButton.Image = "rbxassetid://10734951901"
-    self.floatButton.ScaleType = Enum.ScaleType.Fit
-    self.floatButton.Parent = self.floatGui
-
-    -- Cantos arredondados
-    local floatCorner = Instance.new("UICorner")
-    floatCorner.CornerRadius = UDim.new(1, 0)
-    floatCorner.Parent = self.floatButton
-
-    -- Borda
-    local floatStroke = Instance.new("UIStroke")
-    floatStroke.Thickness = 2
-    floatStroke.Color = Color3.fromRGB(100, 100, 255)
-    floatStroke.Parent = self.floatButton
-
-    -- Sistema de arraste
-    self.dragging = false
-    self.dragOffset = Vector2.new(0, 0)
-    self.touchInput = nil
-
-    self:SetupDragSystem()
-end
-
--- Sistema de arraste para PC e Mobile
-function BeautifulGUI:SetupDragSystem()
-    -- Função quando começa a arrastar
-    local function startDrag(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or 
-           input.UserInputType == Enum.UserInputType.Touch then
-            
-            self.dragging = true
-            self.touchInput = input
-            
-            local mousePos
-            if input.UserInputType == Enum.UserInputType.Touch then
-                mousePos = input.Position
-            else
-                mousePos = UserInputService:GetMouseLocation()
-            end
-            
-            local buttonPos = self.floatButton.AbsolutePosition
-            self.dragOffset = Vector2.new(buttonPos.X - mousePos.X, buttonPos.Y - mousePos.Y)
-            
-            -- Efeito visual durante o arraste
-            TweenService:Create(self.floatButton, TweenInfo.new(0.2), {
-                BackgroundColor3 = self.Theme.ButtonHover,
-                Size = UDim2.new(0, self.Config.ButtonSize + 5, 0, self.Config.ButtonSize + 5)
-            }):Play()
-        end
-    end
-
-    -- Função quando solta
-    self.Connections.InputEnded = UserInputService.InputEnded:Connect(function(input)
-        if (input.UserInputType == Enum.UserInputType.MouseButton1 and not self:IsMobile()) or 
-           (input.UserInputType == Enum.UserInputType.Touch and input == self.touchInput) then
-            
-            if self.dragging then
-                self.dragging = false
-                self.touchInput = nil
-                
-                -- Voltar ao normal
-                TweenService:Create(self.floatButton, TweenInfo.new(0.2), {
-                    BackgroundColor3 = self.Theme.Button,
-                    Size = UDim2.new(0, self.Config.ButtonSize, 0, self.Config.ButtonSize)
-                }):Play()
-            end
-        end
-    end)
-
-    -- Atualizar posição durante o arraste
-    self.Connections.Heartbeat = RunService.Heartbeat:Connect(function()
-        if self.dragging then
-            local mousePos
-            if self.touchInput and self.touchInput.UserInputType == Enum.UserInputType.Touch then
-                mousePos = self.touchInput.Position
-            else
-                mousePos = UserInputService:GetMouseLocation()
-            end
-            
-            local viewportSize = game:GetService("Workspace").CurrentCamera.ViewportSize
-            
-            -- Calcular nova posição
-            local newX = mousePos.X + self.dragOffset.X
-            local newY = mousePos.Y + self.dragOffset.Y
-            
-            -- Limitar dentro da tela
-            local buttonSize = self.floatButton.AbsoluteSize
-            newX = math.clamp(newX, 10, viewportSize.X - buttonSize.X - 10)
-            newY = math.clamp(newY, 10, viewportSize.Y - buttonSize.Y - 10)
-            
-            -- Aplicar nova posição
-            self.floatButton.Position = UDim2.new(0, newX, 0, newY)
-        end
-    end)
-
-    -- Conectar eventos de input
-    self.floatButton.InputBegan:Connect(startDrag)
-
-    -- Efeitos hover (apenas no PC)
-    if not self:IsMobile() then
-        self.floatButton.MouseEnter:Connect(function()
-            if not self.dragging then
-                TweenService:Create(self.floatButton, TweenInfo.new(0.3), {
-                    Size = UDim2.new(0, self.Config.ButtonSize + 10, 0, self.Config.ButtonSize + 10),
-                    BackgroundColor3 = self.Theme.ButtonHover
-                }):Play()
-            end
-        end)
-
-        self.floatButton.MouseLeave:Connect(function()
-            if not self.dragging then
-                TweenService:Create(self.floatButton, TweenInfo.new(0.3), {
-                    Size = UDim2.new(0, self.Config.ButtonSize, 0, self.Config.ButtonSize),
-                    BackgroundColor3 = self.Theme.Button
-                }):Play()
-            end
-        end)
-    end
-
-    -- Evento de clique para abrir/fechar
-    self.floatButton.MouseButton1Click:Connect(function()
-        if not self.dragging then
-            self:Toggle()
-        end
-    end)
+    print("📌 Use o botão '--' para minimizar/expandir")
 end
 
 -- =============================================
@@ -227,7 +81,7 @@ function BeautifulGUI:CreateMainGUI()
     self.screenGui.Name = "MainGUI"
     self.screenGui.Parent = self.playerGui
     self.screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    self.screenGui.Enabled = false
+    self.screenGui.Enabled = true
     self.screenGui.ResetOnSpawn = false
 
     -- Blur effect (opcional)
@@ -246,8 +100,7 @@ function BeautifulGUI:CreateMainGUI()
     self.mainFrame = Instance.new("Frame")
     self.mainFrame.Name = "MainFrame"
     self.mainFrame.Size = UDim2.new(0, self.guiWidth, 0, self.guiHeight)
-    self.mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    self.mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    self.mainFrame.Position = self.Config.Position
     self.mainFrame.BackgroundColor3 = self.Theme.Background
     self.mainFrame.BackgroundTransparency = 0.1
     self.mainFrame.BorderSizePixel = 0
@@ -284,7 +137,7 @@ function BeautifulGUI:CreateMainGUI()
     -- Título
     self.title = Instance.new("TextLabel")
     self.title.Name = "Title"
-    self.title.Size = UDim2.new(0, 200, 1, 0)
+    self.title.Size = UDim2.new(0.6, 0, 1, 0)
     self.title.Position = UDim2.new(0, 20, 0, 0)
     self.title.BackgroundTransparency = 1
     self.title.Text = self.Config.Name
@@ -294,22 +147,38 @@ function BeautifulGUI:CreateMainGUI()
     self.title.TextXAlignment = Enum.TextXAlignment.Left
     self.title.Parent = self.header
 
+    -- Botão minimizar
+    self.minimizeButton = Instance.new("TextButton")
+    self.minimizeButton.Name = "MinimizeButton"
+    self.minimizeButton.Size = UDim2.new(0, 40, 0, 30)
+    self.minimizeButton.Position = UDim2.new(1, -90, 0, (self.headerHeight - 30) / 2)
+    self.minimizeButton.BackgroundColor3 = self.Theme.MinimizeButton
+    self.minimizeButton.BorderSizePixel = 0
+    self.minimizeButton.Text = "--"
+    self.minimizeButton.TextColor3 = self.Theme.Text
+    self.minimizeButton.TextSize = self:IsMobile() and 16 or 14
+    self.minimizeButton.Font = Enum.Font.GothamBold
+    self.minimizeButton.Parent = self.header
+
+    local minimizeCorner = Instance.new("UICorner")
+    minimizeCorner.CornerRadius = UDim.new(0, 6)
+    minimizeCorner.Parent = self.minimizeButton
+
     -- Botão fechar
-    self.closeButtonSize = self:IsMobile() and 40 or 30
     self.closeButton = Instance.new("TextButton")
     self.closeButton.Name = "CloseButton"
-    self.closeButton.Size = UDim2.new(0, self.closeButtonSize, 0, self.closeButtonSize)
-    self.closeButton.Position = UDim2.new(1, -self.closeButtonSize - 10, 0, (self.headerHeight - self.closeButtonSize) / 2)
+    self.closeButton.Size = UDim2.new(0, 30, 0, 30)
+    self.closeButton.Position = UDim2.new(1, -40, 0, (self.headerHeight - 30) / 2)
     self.closeButton.BackgroundColor3 = self.Theme.CloseButton
     self.closeButton.BorderSizePixel = 0
     self.closeButton.Text = "X"
     self.closeButton.TextColor3 = self.Theme.Text
-    self.closeButton.TextSize = self:IsMobile() and 18 or 16
+    self.closeButton.TextSize = self:IsMobile() and 16 or 14
     self.closeButton.Font = Enum.Font.GothamBold
     self.closeButton.Parent = self.header
 
     local closeCorner = Instance.new("UICorner")
-    closeCorner.CornerRadius = UDim.new(1, 0)
+    closeCorner.CornerRadius = UDim.new(0, 6)
     closeCorner.Parent = self.closeButton
 
     -- Container de Tabs
@@ -346,6 +215,55 @@ function BeautifulGUI:CreateMainGUI()
     self.layout.Padding = UDim.new(0, self:IsMobile() and 15 or 10)
     self.layout.Parent = self.scrollingFrame
 
+    -- Frame minimizado (apenas mostra o título)
+    self.minimizedFrame = Instance.new("Frame")
+    self.minimizedFrame.Name = "MinimizedFrame"
+    self.minimizedFrame.Size = UDim2.new(0, 200, 0, self.headerHeight)
+    self.minimizedFrame.Position = self.Config.Position
+    self.minimizedFrame.BackgroundColor3 = self.Theme.Header
+    self.minimizedFrame.BackgroundTransparency = 0.1
+    self.minimizedFrame.BorderSizePixel = 0
+    self.minimizedFrame.Visible = false
+    self.minimizedFrame.Parent = self.screenGui
+
+    local minimizedCorner = Instance.new("UICorner")
+    minimizedCorner.CornerRadius = UDim.new(0, 15)
+    minimizedCorner.Parent = self.minimizedFrame
+
+    local minimizedStroke = Instance.new("UIStroke")
+    minimizedStroke.Thickness = 2
+    minimizedStroke.Color = Color3.fromRGB(100, 100, 255)
+    minimizedStroke.Transparency = 0.3
+    minimizedStroke.Parent = self.minimizedFrame
+
+    self.minimizedTitle = Instance.new("TextLabel")
+    self.minimizedTitle.Name = "MinimizedTitle"
+    self.minimizedTitle.Size = UDim2.new(0.7, 0, 1, 0)
+    self.minimizedTitle.Position = UDim2.new(0, 15, 0, 0)
+    self.minimizedTitle.BackgroundTransparency = 1
+    self.minimizedTitle.Text = self.Config.Name
+    self.minimizedTitle.TextColor3 = self.Theme.Text
+    self.minimizedTitle.TextSize = self:IsMobile() and 16 or 14
+    self.minimizedTitle.Font = Enum.Font.GothamBold
+    self.minimizedTitle.TextXAlignment = Enum.TextXAlignment.Left
+    self.minimizedTitle.Parent = self.minimizedFrame
+
+    self.minimizedToggleButton = Instance.new("TextButton")
+    self.minimizedToggleButton.Name = "MinimizedToggleButton"
+    self.minimizedToggleButton.Size = UDim2.new(0, 40, 0, 30)
+    self.minimizedToggleButton.Position = UDim2.new(1, -45, 0, (self.headerHeight - 30) / 2)
+    self.minimizedToggleButton.BackgroundColor3 = self.Theme.MinimizeButton
+    self.minimizedToggleButton.BorderSizePixel = 0
+    self.minimizedToggleButton.Text = "+"
+    self.minimizedToggleButton.TextColor3 = self.Theme.Text
+    self.minimizedToggleButton.TextSize = self:IsMobile() and 16 or 14
+    self.minimizedToggleButton.Font = Enum.Font.GothamBold
+    self.minimizedToggleButton.Parent = self.minimizedFrame
+
+    local minimizedToggleCorner = Instance.new("UICorner")
+    minimizedToggleCorner.CornerRadius = UDim.new(0, 6)
+    minimizedToggleCorner.Parent = self.minimizedToggleButton
+
     -- Configurar eventos
     self:SetupGUIEvents()
 end
@@ -355,6 +273,16 @@ function BeautifulGUI:SetupGUIEvents()
     -- Botão fechar
     self.closeButton.MouseButton1Click:Connect(function()
         self:Hide()
+    end)
+
+    -- Botão minimizar
+    self.minimizeButton.MouseButton1Click:Connect(function()
+        self:Minimize()
+    end)
+
+    -- Botão expandir (na frame minimizada)
+    self.minimizedToggleButton.MouseButton1Click:Connect(function()
+        self:Maximize()
     end)
 
     -- Atualizar canvas size
@@ -392,49 +320,154 @@ function BeautifulGUI:SetupGUIEvents()
             )
         end
     end)
+
+    -- Sistema de drag para a frame minimizada
+    local minimizedDragging = false
+    local minimizedDragStart, minimizedStartPos
+
+    self.minimizedFrame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or 
+           input.UserInputType == Enum.UserInputType.Touch then
+            minimizedDragging = true
+            minimizedDragStart = input.Position
+            minimizedStartPos = self.minimizedFrame.Position
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if minimizedDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or 
+                               input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - minimizedDragStart
+            self.minimizedFrame.Position = UDim2.new(
+                minimizedStartPos.X.Scale, minimizedStartPos.X.Offset + delta.X,
+                minimizedStartPos.Y.Scale, minimizedStartPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+
+    -- Efeitos hover para botões (apenas no PC)
+    if not self:IsMobile() then
+        -- Botão minimizar
+        self.minimizeButton.MouseEnter:Connect(function()
+            TweenService:Create(self.minimizeButton, TweenInfo.new(0.2), {
+                BackgroundColor3 = self.Theme.MinimizeButtonHover
+            }):Play()
+        end)
+
+        self.minimizeButton.MouseLeave:Connect(function()
+            TweenService:Create(self.minimizeButton, TweenInfo.new(0.2), {
+                BackgroundColor3 = self.Theme.MinimizeButton
+            }):Play()
+        end)
+
+        -- Botão fechar
+        self.closeButton.MouseEnter:Connect(function()
+            TweenService:Create(self.closeButton, TweenInfo.new(0.2), {
+                BackgroundColor3 = self.Theme.CloseButtonHover
+            }):Play()
+        end)
+
+        self.closeButton.MouseLeave:Connect(function()
+            TweenService:Create(self.closeButton, TweenInfo.new(0.2), {
+                BackgroundColor3 = self.Theme.CloseButton
+            }):Play()
+        end)
+
+        -- Botão expandir minimizado
+        self.minimizedToggleButton.MouseEnter:Connect(function()
+            TweenService:Create(self.minimizedToggleButton, TweenInfo.new(0.2), {
+                BackgroundColor3 = self.Theme.MinimizeButtonHover
+            }):Play()
+        end)
+
+        self.minimizedToggleButton.MouseLeave:Connect(function()
+            TweenService:Create(self.minimizedToggleButton, TweenInfo.new(0.2), {
+                BackgroundColor3 = self.Theme.MinimizeButton
+            }):Play()
+        end)
+    end
 end
 
 -- =============================================
 -- MÉTODOS PRINCIPAIS
 -- =============================================
 
--- Mostrar GUI
-function BeautifulGUI:Show()
-    self.screenGui.Enabled = true
-    if self.blurEffect then
-        self.blurEffect.Enabled = true
-    end
+-- Minimizar GUI
+function BeautifulGUI:Minimize()
+    if self.isMinimized then return end
     
-    -- Animação de entrada
-    self.mainFrame.Size = UDim2.new(0, 0, 0, 0)
-    self.mainFrame.BackgroundTransparency = 1
+    self.isMinimized = true
     
-    local entranceTween = TweenService:Create(
-        self.mainFrame,
-        TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-        {Size = UDim2.new(0, self.guiWidth, 0, self.guiHeight), BackgroundTransparency = 0.1}
-    )
-    entranceTween:Play()
+    -- Salvar posição atual
+    self.savedPosition = self.mainFrame.Position
     
-    self.guiVisible = true
-end
-
--- Esconder GUI
-function BeautifulGUI:Hide()
-    local exitTween = TweenService:Create(
+    -- Animação de minimização
+    local minimizeTween = TweenService:Create(
         self.mainFrame,
         TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In),
         {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1}
     )
     
-    exitTween:Play()
-    exitTween.Completed:Connect(function()
-        self.screenGui.Enabled = false
-        if self.blurEffect then
-            self.blurEffect.Enabled = false
-        end
+    minimizeTween:Play()
+    minimizeTween.Completed:Connect(function()
+        self.mainFrame.Visible = false
+        self.minimizedFrame.Visible = true
+        self.minimizedFrame.Position = self.savedPosition
     end)
+end
+
+-- Maximizar GUI
+function BeautifulGUI:Maximize()
+    if not self.isMinimized then return end
     
+    self.isMinimized = false
+    
+    -- Salvar posição da frame minimizada
+    self.savedPosition = self.minimizedFrame.Position
+    
+    -- Esconder frame minimizada
+    self.minimizedFrame.Visible = false
+    
+    -- Mostrar e animar frame principal
+    self.mainFrame.Visible = true
+    self.mainFrame.Size = UDim2.new(0, 0, 0, 0)
+    self.mainFrame.BackgroundTransparency = 1
+    self.mainFrame.Position = self.savedPosition
+    
+    local maximizeTween = TweenService:Create(
+        self.mainFrame,
+        TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+        {
+            Size = UDim2.new(0, self.guiWidth, 0, self.guiHeight), 
+            BackgroundTransparency = 0.1
+        }
+    )
+    
+    maximizeTween:Play()
+end
+
+-- Mostrar GUI
+function BeautifulGUI:Show()
+    if self.isMinimized then
+        self:Maximize()
+    else
+        self.screenGui.Enabled = true
+        self.mainFrame.Visible = true
+        self.minimizedFrame.Visible = false
+        
+        if self.blurEffect then
+            self.blurEffect.Enabled = true
+        end
+    end
+    self.guiVisible = true
+end
+
+-- Esconder GUI
+function BeautifulGUI:Hide()
+    self.screenGui.Enabled = false
+    if self.blurEffect then
+        self.blurEffect.Enabled = false
+    end
     self.guiVisible = false
 end
 
@@ -444,6 +477,15 @@ function BeautifulGUI:Toggle()
         self:Hide()
     else
         self:Show()
+    end
+end
+
+-- Alternar entre minimizado/maximizado
+function BeautifulGUI:ToggleMinimize()
+    if self.isMinimized then
+        self:Maximize()
+    else
+        self:Minimize()
     end
 end
 
@@ -690,26 +732,6 @@ function BeautifulGUI:CreateToggle(toggleConfig, parentTab)
         end
     }
 end
-    
-    -- Evento
-    toggleButton.MouseButton1Click:Connect(function()
-        state = not state
-        updateToggle()
-        if toggleConfig.Callback then
-            toggleConfig.Callback(state)
-        end
-    end)
-    
-    return {
-        Set = function(newState)
-            state = newState
-            updateToggle()
-        end,
-        Get = function()
-            return state
-        end
-    }
-end
 
 -- =============================================
 -- UTILITÁRIOS
@@ -721,10 +743,6 @@ function BeautifulGUI:Destroy()
         if connection then
             pcall(function() connection:Disconnect() end)
         end
-    end
-    
-    if self.floatGui then
-        pcall(function() self.floatGui:Destroy() end)
     end
     
     if self.screenGui then
@@ -741,12 +759,8 @@ function BeautifulGUI:SetTitle(newTitle)
     if self.title then
         self.title.Text = newTitle
     end
-end
-
--- Mudar ícone do botão flutuante
-function BeautifulGUI:SetFloatButtonIcon(imageId)
-    if self.floatButton then
-        self.floatButton.Image = "rbxassetid://" .. imageId
+    if self.minimizedTitle then
+        self.minimizedTitle.Text = newTitle
     end
 end
 
