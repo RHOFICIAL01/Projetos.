@@ -615,10 +615,16 @@ function BeautifulGUI:CreateToggle(toggleConfig, parentTab)
     toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
     toggleLabel.Parent = toggleFrame
     
+    -- Calcular valores baseados na plataforma ANTES de usar no UDim2
+    local toggleWidth = self:IsMobile() and 60 or 50
+    local toggleHeight = self:IsMobile() and 30 or 25
+    local toggleYPos = self:IsMobile() and 5 or 2
+    local dotSize = self:IsMobile() and 26 or 21
+    
     local toggleButton = Instance.new("TextButton")
     toggleButton.Name = "Toggle"
-    toggleButton.Size = UDim2.new(0, self:IsMobile() and 60 or 50, 0, self:IsMobile() and 30 or 25)
-    toggleButton.Position = UDim2.new(1, -self:IsMobile() and 60 or 50, 0, self:IsMobile() and 5 or 2)
+    toggleButton.Size = UDim2.new(0, toggleWidth, 0, toggleHeight)
+    toggleButton.Position = UDim2.new(1, -toggleWidth, 0, toggleYPos)
     toggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
     toggleButton.BorderSizePixel = 0
     toggleButton.Text = ""
@@ -630,7 +636,7 @@ function BeautifulGUI:CreateToggle(toggleConfig, parentTab)
     
     local toggleDot = Instance.new("Frame")
     toggleDot.Name = "Dot"
-    toggleDot.Size = UDim2.new(0, self:IsMobile() and 26 or 21, 0, self:IsMobile() and 26 or 21)
+    toggleDot.Size = UDim2.new(0, dotSize, 0, dotSize)
     toggleDot.Position = UDim2.new(0, 2, 0, 2)
     toggleDot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     toggleDot.BorderSizePixel = 0
@@ -643,24 +649,47 @@ function BeautifulGUI:CreateToggle(toggleConfig, parentTab)
     local state = toggleConfig.Default or false
     
     local function updateToggle()
+        -- Calcular posição do dot baseado no estado
+        local dotPositionX = state and (toggleWidth - dotSize - 2) or 2
+        
         if state then
             TweenService:Create(toggleButton, TweenInfo.new(0.2), {
                 BackgroundColor3 = Color3.fromRGB(60, 180, 100)
             }):Play()
             TweenService:Create(toggleDot, TweenInfo.new(0.2), {
-                Position = UDim2.new(0, self:IsMobile() and 32 or 27, 0, 2)
+                Position = UDim2.new(0, dotPositionX, 0, 2)
             }):Play()
         else
             TweenService:Create(toggleButton, TweenInfo.new(0.2), {
                 BackgroundColor3 = Color3.fromRGB(60, 60, 70)
             }):Play()
             TweenService:Create(toggleDot, TweenInfo.new(0.2), {
-                Position = UDim2.new(0, 2, 0, 2)
+                Position = UDim2.new(0, dotPositionX, 0, 2)
             }):Play()
         end
     end
     
     updateToggle()
+    
+    -- Evento
+    toggleButton.MouseButton1Click:Connect(function()
+        state = not state
+        updateToggle()
+        if toggleConfig.Callback then
+            toggleConfig.Callback(state)
+        end
+    end)
+    
+    return {
+        Set = function(newState)
+            state = newState
+            updateToggle()
+        end,
+        Get = function()
+            return state
+        end
+    }
+end
     
     -- Evento
     toggleButton.MouseButton1Click:Connect(function()
