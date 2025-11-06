@@ -1,7 +1,5 @@
 -- BeautifulGUI Library
--- Versão: 2.0 - Compatível com PC e Mobile
--- Features: Interface grande, Sistema VIP, Player Hacks
-
+-- Versão: VIP - Interface Centralizada com Efeitos
 local BeautifulGUI = {}
 BeautifulGUI.__index = BeautifulGUI
 
@@ -15,26 +13,25 @@ local Players = game:GetService("Players")
 local DefaultConfig = {
     Name = "SISTEMA VIP",
     Theme = "Dark",
-    Position = UDim2.new(0.5, -300, 0.5, -250),
     EnableBlur = false
 }
 
--- Temas
+-- Temas VIP
 local Themes = {
     Dark = {
-        Background = Color3.fromRGB(15, 15, 25),
-        Header = Color3.fromRGB(25, 25, 40),
-        Tab = Color3.fromRGB(35, 35, 50),
-        TabSelected = Color3.fromRGB(80, 120, 255),
+        Background = Color3.fromRGB(10, 10, 20),
+        Header = Color3.fromRGB(20, 20, 35),
+        Tab = Color3.fromRGB(30, 30, 45),
+        TabSelected = Color3.fromRGB(0, 150, 255),
         Text = Color3.fromRGB(255, 255, 255),
-        TextSecondary = Color3.fromRGB(180, 180, 180),
-        Button = Color3.fromRGB(80, 120, 255),
-        ButtonHover = Color3.fromRGB(100, 140, 255),
-        CloseButton = Color3.fromRGB(255, 80, 80),
-        CloseButtonHover = Color3.fromRGB(255, 100, 100),
-        MinimizeButton = Color3.fromRGB(255, 180, 60),
-        MinimizeButtonHover = Color3.fromRGB(255, 200, 80),
-        Section = Color3.fromRGB(80, 120, 255)
+        TextSecondary = Color3.fromRGB(170, 170, 170),
+        Button = Color3.fromRGB(0, 100, 255),
+        ButtonHover = Color3.fromRGB(0, 120, 255),
+        CloseButton = Color3.fromRGB(255, 50, 50),
+        CloseButtonHover = Color3.fromRGB(255, 80, 80),
+        MinimizeButton = Color3.fromRGB(255, 150, 0),
+        MinimizeButtonHover = Color3.fromRGB(255, 180, 0),
+        Section = Color3.fromRGB(0, 150, 255)
     }
 }
 
@@ -49,16 +46,8 @@ function BeautifulGUI.new(config)
     self.guiVisible = true
     self.isMinimized = false
     
-    -- Detectar plataforma
-    self.isMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
-    
     self:Initialize()
     return self
-end
-
--- Função para detectar plataforma
-function BeautifulGUI:IsMobile()
-    return self.isMobile
 end
 
 -- Inicialização
@@ -69,11 +58,10 @@ function BeautifulGUI:Initialize()
     self:CreateMainGUI()
     
     print("🎮 SISTEMA VIP Carregado!")
-    print("📟 Plataforma: " .. (self:IsMobile() and "📱 MOBILE" or "🖥️ PC"))
 end
 
 -- =============================================
--- GUI PRINCIPAL (TAMANHO AUMENTADO)
+-- GUI PRINCIPAL (CENTRALIZADA)
 -- =============================================
 
 function BeautifulGUI:CreateMainGUI()
@@ -84,114 +72,135 @@ function BeautifulGUI:CreateMainGUI()
     self.screenGui.Enabled = true
     self.screenGui.ResetOnSpawn = false
 
-    -- Blur effect (opcional)
-    if self.Config.EnableBlur then
-        self.blurEffect = Instance.new("BlurEffect")
-        self.blurEffect.Size = 8
-        self.blurEffect.Enabled = false
-        self.blurEffect.Parent = game:GetService("Lighting")
-    end
-
-    -- TAMANHO AUMENTADO (600x500)
+    -- TAMANHO DA INTERFACE (600x500)
     self.guiWidth = 600
     self.guiHeight = 500
 
-    -- Frame principal
+    -- Frame principal (CENTRALIZADO)
     self.mainFrame = Instance.new("Frame")
     self.mainFrame.Name = "MainFrame"
     self.mainFrame.Size = UDim2.new(0, self.guiWidth, 0, self.guiHeight)
-    self.mainFrame.Position = self.Config.Position
+    self.mainFrame.Position = UDim2.new(0.5, -self.guiWidth/2, 0.5, -self.guiHeight/2) -- Centralizado
+    self.mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
     self.mainFrame.BackgroundColor3 = self.Theme.Background
-    self.mainFrame.BackgroundTransparency = 0.05
+    self.mainFrame.BackgroundTransparency = 0
     self.mainFrame.BorderSizePixel = 0
     self.mainFrame.ClipsDescendants = true
     self.mainFrame.Parent = self.screenGui
 
-    -- Efeito de sombra
+    -- Efeito de sombra forte (como na foto)
     local shadow = Instance.new("ImageLabel")
     shadow.Name = "Shadow"
-    shadow.Size = UDim2.new(1, 30, 1, 30)
-    shadow.Position = UDim2.new(0, -15, 0, -15)
+    shadow.Size = UDim2.new(1, 40, 1, 40)
+    shadow.Position = UDim2.new(0, -20, 0, -20)
     shadow.BackgroundTransparency = 1
     shadow.Image = "rbxassetid://2615687895"
     shadow.ImageColor3 = Color3.new(0, 0, 0)
-    shadow.ImageTransparency = 0.8
+    shadow.ImageTransparency = 0.7
     shadow.ScaleType = Enum.ScaleType.Slice
     shadow.SliceCenter = Rect.new(20, 20, 280, 280)
+    shadow.ZIndex = 0
     shadow.Parent = self.mainFrame
 
-    -- Cantos arredondados
-    local mainCorner = Instance.new("UICorner")
-    mainCorner.CornerRadius = UDim.new(0, 12)
-    mainCorner.Parent = self.mainFrame
+    -- Borda brilhante azul (efeito da foto)
+    local glowStroke = Instance.new("UIStroke")
+    glowStroke.Thickness = 3
+    glowStroke.Color = Color3.fromRGB(0, 150, 255)
+    glowStroke.Transparency = 0.1
+    glowStroke.Parent = self.mainFrame
 
-    -- Borda luminosa
-    local mainStroke = Instance.new("UIStroke")
-    mainStroke.Thickness = 3
-    mainStroke.Color = Color3.fromRGB(80, 120, 255)
-    mainStroke.Transparency = 0.2
-    mainStroke.Parent = self.mainFrame
+    -- Efeito de gradiente interno
+    local gradient = Instance.new("UIGradient")
+    gradient.Rotation = 90
+    gradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(15, 15, 25)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 20))
+    })
+    gradient.Parent = self.mainFrame
 
-    -- Header
+    -- Header com efeito de brilho
     self.headerHeight = 50
     self.header = Instance.new("Frame")
     self.header.Name = "Header"
     self.header.Size = UDim2.new(1, 0, 0, self.headerHeight)
     self.header.Position = UDim2.new(0, 0, 0, 0)
     self.header.BackgroundColor3 = self.Theme.Header
-    self.header.BackgroundTransparency = 0.05
+    self.header.BackgroundTransparency = 0
     self.header.BorderSizePixel = 0
+    self.header.ZIndex = 3
     self.header.Parent = self.mainFrame
 
-    local headerCorner = Instance.new("UICorner")
-    headerCorner.CornerRadius = UDim.new(0, 12)
-    headerCorner.Parent = self.header
+    -- Gradiente do header
+    local headerGradient = Instance.new("UIGradient")
+    headerGradient.Rotation = 90
+    headerGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 25, 40)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 35))
+    })
+    headerGradient.Parent = self.header
 
-    -- Título (SISTEMA VIP)
+    -- Borda inferior do header
+    local headerStroke = Instance.new("UIStroke")
+    headerStroke.Thickness = 2
+    headerStroke.Color = Color3.fromRGB(0, 100, 255)
+    headerStroke.Transparency = 0.3
+    headerStroke.Parent = self.header
+
+    -- Título SISTEMA VIP (estilo da foto)
     self.title = Instance.new("TextLabel")
     self.title.Name = "Title"
     self.title.Size = UDim2.new(0.7, 0, 1, 0)
     self.title.Position = UDim2.new(0, 20, 0, 0)
     self.title.BackgroundTransparency = 1
     self.title.Text = "SISTEMA VIP"
-    self.title.TextColor3 = self.Theme.Text
-    self.title.TextSize = 20
+    self.title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    self.title.TextSize = 18
     self.title.Font = Enum.Font.GothamBlack
     self.title.TextXAlignment = Enum.TextXAlignment.Left
+    self.title.ZIndex = 4
     self.title.Parent = self.header
+
+    -- Efeito de brilho no texto
+    local titleStroke = Instance.new("UIStroke")
+    titleStroke.Thickness = 1
+    titleStroke.Color = Color3.fromRGB(0, 150, 255)
+    titleStroke.Transparency = 0.5
+    titleStroke.Parent = self.title
 
     -- Botão minimizar
     self.minimizeButton = Instance.new("TextButton")
     self.minimizeButton.Name = "MinimizeButton"
-    self.minimizeButton.Size = UDim2.new(0, 35, 0, 35)
-    self.minimizeButton.Position = UDim2.new(1, -80, 0, (self.headerHeight - 35) / 2)
+    self.minimizeButton.Size = UDim2.new(0, 30, 0, 30)
+    self.minimizeButton.Position = UDim2.new(1, -70, 0, 10)
     self.minimizeButton.BackgroundColor3 = self.Theme.MinimizeButton
     self.minimizeButton.BorderSizePixel = 0
     self.minimizeButton.Text = "-"
-    self.minimizeButton.TextColor3 = self.Theme.Text
-    self.minimizeButton.TextSize = 18
+    self.minimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    self.minimizeButton.TextSize = 16
     self.minimizeButton.Font = Enum.Font.GothamBold
+    self.minimizeButton.ZIndex = 4
     self.minimizeButton.Parent = self.header
 
     local minimizeCorner = Instance.new("UICorner")
-    minimizeCorner.CornerRadius = UDim.new(0, 8)
+    minimizeCorner.CornerRadius = UDim.new(0, 6)
     minimizeCorner.Parent = self.minimizeButton
 
     -- Botão fechar
     self.closeButton = Instance.new("TextButton")
     self.closeButton.Name = "CloseButton"
-    self.closeButton.Size = UDim2.new(0, 35, 0, 35)
-    self.closeButton.Position = UDim2.new(1, -40, 0, (self.headerHeight - 35) / 2)
+    self.closeButton.Size = UDim2.new(0, 30, 0, 30)
+    self.closeButton.Position = UDim2.new(1, -35, 0, 10)
     self.closeButton.BackgroundColor3 = self.Theme.CloseButton
     self.closeButton.BorderSizePixel = 0
     self.closeButton.Text = "X"
-    self.closeButton.TextColor3 = self.Theme.Text
-    self.closeButton.TextSize = 16
+    self.closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    self.closeButton.TextSize = 14
     self.closeButton.Font = Enum.Font.GothamBold
+    self.closeButton.ZIndex = 4
     self.closeButton.Parent = self.header
 
     local closeCorner = Instance.new("UICorner")
-    closeCorner.CornerRadius = UDim.new(0, 8)
+    closeCorner.CornerRadius = UDim.new(0, 6)
     closeCorner.Parent = self.closeButton
 
     -- Container de Tabs (lateral esquerda)
@@ -202,7 +211,24 @@ function BeautifulGUI:CreateMainGUI()
     self.tabsContainer.Position = UDim2.new(0, 0, 0, self.headerHeight)
     self.tabsContainer.BackgroundColor3 = self.Theme.Tab
     self.tabsContainer.BorderSizePixel = 0
+    self.tabsContainer.ZIndex = 2
     self.tabsContainer.Parent = self.mainFrame
+
+    -- Gradiente das tabs
+    local tabsGradient = Instance.new("UIGradient")
+    tabsGradient.Rotation = 90
+    tabsGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 35, 50)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 30, 45))
+    })
+    tabsGradient.Parent = self.tabsContainer
+
+    -- Borda direita das tabs
+    local tabsStroke = Instance.new("UIStroke")
+    tabsStroke.Thickness = 2
+    tabsStroke.Color = Color3.fromRGB(0, 100, 255)
+    tabsStroke.Transparency = 0.3
+    tabsStroke.Parent = self.tabsContainer
 
     -- Container de Conteúdo (área principal)
     self.contentContainer = Instance.new("Frame")
@@ -210,6 +236,7 @@ function BeautifulGUI:CreateMainGUI()
     self.contentContainer.Size = UDim2.new(1, -self.tabsWidth, 1, -self.headerHeight)
     self.contentContainer.Position = UDim2.new(0, self.tabsWidth, 0, self.headerHeight)
     self.contentContainer.BackgroundTransparency = 1
+    self.contentContainer.ZIndex = 2
     self.contentContainer.Parent = self.mainFrame
 
     -- ScrollingFrame para conteúdo
@@ -220,12 +247,12 @@ function BeautifulGUI:CreateMainGUI()
     self.scrollingFrame.BackgroundTransparency = 1
     self.scrollingFrame.BorderSizePixel = 0
     self.scrollingFrame.ScrollBarThickness = 4
-    self.scrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
+    self.scrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(0, 100, 255)
     self.scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
     self.scrollingFrame.Parent = self.contentContainer
 
     self.layout = Instance.new("UIListLayout")
-    self.layout.Padding = UDim.new(0, 10)
+    self.layout.Padding = UDim.new(0, 15)
     self.layout.Parent = self.scrollingFrame
 
     -- Configurar eventos
@@ -270,7 +297,7 @@ function BeautifulGUI:SetupGUIEvents()
         if mainDragging then
             mainDragging = false
             TweenService:Create(self.mainFrame, TweenInfo.new(0.2), {
-                BackgroundTransparency = 0.05
+                BackgroundTransparency = 0
             }):Play()
         end
     end
@@ -297,30 +324,30 @@ function BeautifulGUI:SetupGUIEvents()
 
     -- Efeitos hover para botões
     self.minimizeButton.MouseEnter:Connect(function()
-        TweenService:Create(self.minimizeButton, TweenInfo.new(0.3), {
+        TweenService:Create(self.minimizeButton, TweenInfo.new(0.2), {
             BackgroundColor3 = self.Theme.MinimizeButtonHover,
-            Size = UDim2.new(0, 38, 0, 38)
+            Size = UDim2.new(0, 32, 0, 32)
         }):Play()
     end)
 
     self.minimizeButton.MouseLeave:Connect(function()
-        TweenService:Create(self.minimizeButton, TweenInfo.new(0.3), {
+        TweenService:Create(self.minimizeButton, TweenInfo.new(0.2), {
             BackgroundColor3 = self.Theme.MinimizeButton,
-            Size = UDim2.new(0, 35, 0, 35)
+            Size = UDim2.new(0, 30, 0, 30)
         }):Play()
     end)
 
     self.closeButton.MouseEnter:Connect(function()
-        TweenService:Create(self.closeButton, TweenInfo.new(0.3), {
+        TweenService:Create(self.closeButton, TweenInfo.new(0.2), {
             BackgroundColor3 = self.Theme.CloseButtonHover,
-            Size = UDim2.new(0, 38, 0, 38)
+            Size = UDim2.new(0, 32, 0, 32)
         }):Play()
     end)
 
     self.closeButton.MouseLeave:Connect(function()
-        TweenService:Create(self.closeButton, TweenInfo.new(0.3), {
+        TweenService:Create(self.closeButton, TweenInfo.new(0.2), {
             BackgroundColor3 = self.Theme.CloseButton,
-            Size = UDim2.new(0, 35, 0, 35)
+            Size = UDim2.new(0, 30, 0, 30)
         }):Play()
     end)
 end
@@ -338,7 +365,7 @@ function BeautifulGUI:Minimize()
     -- Animação de minimização
     local minimizeTween = TweenService:Create(
         self.mainFrame,
-        TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In),
+        TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In),
         {
             Size = UDim2.new(0, 0, 0, 0), 
             BackgroundTransparency = 1
@@ -357,10 +384,10 @@ function BeautifulGUI:Maximize()
     -- Animação de maximização
     local maximizeTween = TweenService:Create(
         self.mainFrame,
-        TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+        TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
         {
             Size = UDim2.new(0, self.guiWidth, 0, self.guiHeight), 
-            BackgroundTransparency = 0.05
+            BackgroundTransparency = 0
         }
     )
     
@@ -378,15 +405,6 @@ end
 function BeautifulGUI:Hide()
     self.screenGui.Enabled = false
     self.guiVisible = false
-end
-
--- Alternar GUI
-function BeautifulGUI:Toggle()
-    if self.guiVisible then
-        self:Hide()
-    else
-        self:Show()
-    end
 end
 
 -- Alternar entre minimizado/maximizado
@@ -420,19 +438,20 @@ function BeautifulGUI:CreateTab(tabName)
     tabButton.BorderSizePixel = 0
     tabButton.Text = tabName
     tabButton.TextColor3 = self.Theme.TextSecondary
-    tabButton.TextSize = 16
+    tabButton.TextSize = 14
     tabButton.Font = Enum.Font.GothamBold
+    tabButton.ZIndex = 3
     tabButton.Parent = self.tabsContainer
     
     local tabCorner = Instance.new("UICorner")
-    tabCorner.CornerRadius = UDim.new(0, 8)
+    tabCorner.CornerRadius = UDim.new(0, 6)
     tabCorner.Parent = tabButton
     
     -- Efeitos hover para tabs
     tabButton.MouseEnter:Connect(function()
         if tab ~= self.CurrentTab then
             TweenService:Create(tabButton, TweenInfo.new(0.2), {
-                BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+                BackgroundColor3 = Color3.fromRGB(45, 45, 65)
             }):Play()
         end
     end)
@@ -502,7 +521,7 @@ function BeautifulGUI:CreateSection(sectionName, parentTab)
     
     local section = Instance.new("Frame")
     section.Name = sectionName .. "Section"
-    section.Size = UDim2.new(1, -30, 0, 40)
+    section.Size = UDim2.new(1, -30, 0, 35)
     section.BackgroundTransparency = 1
     section.Parent = tab.Container
     
@@ -510,9 +529,9 @@ function BeautifulGUI:CreateSection(sectionName, parentTab)
     sectionLabel.Name = "Label"
     sectionLabel.Size = UDim2.new(1, 0, 1, 0)
     sectionLabel.BackgroundTransparency = 1
-    sectionLabel.Text = "▏ " .. sectionName:upper()
+    sectionLabel.Text = sectionName
     sectionLabel.TextColor3 = self.Theme.Section
-    sectionLabel.TextSize = 18
+    sectionLabel.TextSize = 16
     sectionLabel.Font = Enum.Font.GothamBlack
     sectionLabel.TextXAlignment = Enum.TextXAlignment.Left
     sectionLabel.Parent = section
@@ -525,7 +544,7 @@ function BeautifulGUI:CreateButton(buttonConfig, parentTab)
     local tab = parentTab or self.CurrentTab
     if not tab then return end
     
-    local buttonHeight = 45
+    local buttonHeight = 40
     local button = Instance.new("TextButton")
     button.Name = buttonConfig.Name .. "Button"
     button.Size = UDim2.new(1, -30, 0, buttonHeight)
@@ -533,26 +552,24 @@ function BeautifulGUI:CreateButton(buttonConfig, parentTab)
     button.BorderSizePixel = 0
     button.Text = buttonConfig.Text or buttonConfig.Name
     button.TextColor3 = self.Theme.Text
-    button.TextSize = 16
+    button.TextSize = 14
     button.Font = Enum.Font.GothamBold
     button.Parent = tab.Container
     
     local buttonCorner = Instance.new("UICorner")
-    buttonCorner.CornerRadius = UDim.new(0, 8)
+    buttonCorner.CornerRadius = UDim.new(0, 6)
     buttonCorner.Parent = button
     
     -- Efeito hover
     button.MouseEnter:Connect(function()
         TweenService:Create(button, TweenInfo.new(0.2), {
-            BackgroundColor3 = self.Theme.ButtonHover,
-            Size = UDim2.new(1, -25, 0, buttonHeight + 3)
+            BackgroundColor3 = self.Theme.ButtonHover
         }):Play()
     end)
     
     button.MouseLeave:Connect(function()
         TweenService:Create(button, TweenInfo.new(0.2), {
-            BackgroundColor3 = self.Theme.Button,
-            Size = UDim2.new(1, -30, 0, buttonHeight)
+            BackgroundColor3 = self.Theme.Button
         }):Play()
     end)
     
@@ -571,7 +588,7 @@ function BeautifulGUI:CreateToggle(toggleConfig, parentTab)
     
     local toggleFrame = Instance.new("Frame")
     toggleFrame.Name = toggleConfig.Name .. "Toggle"
-    toggleFrame.Size = UDim2.new(1, -30, 0, 45)
+    toggleFrame.Size = UDim2.new(1, -30, 0, 40)
     toggleFrame.BackgroundTransparency = 1
     toggleFrame.Parent = tab.Container
     
@@ -582,21 +599,21 @@ function BeautifulGUI:CreateToggle(toggleConfig, parentTab)
     toggleLabel.BackgroundTransparency = 1
     toggleLabel.Text = toggleConfig.Text or toggleConfig.Name
     toggleLabel.TextColor3 = self.Theme.Text
-    toggleLabel.TextSize = 16
+    toggleLabel.TextSize = 14
     toggleLabel.Font = Enum.Font.GothamBold
     toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
     toggleLabel.Parent = toggleFrame
     
     -- Toggle button
-    local toggleWidth = 70
-    local toggleHeight = 35
-    local dotSize = 25
+    local toggleWidth = 60
+    local toggleHeight = 30
+    local dotSize = 22
     
     local toggleButton = Instance.new("TextButton")
     toggleButton.Name = "Toggle"
     toggleButton.Size = UDim2.new(0, toggleWidth, 0, toggleHeight)
     toggleButton.Position = UDim2.new(1, -toggleWidth, 0, 5)
-    toggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    toggleButton.BackgroundColor3 = Color3.fromRGB(50, 50, 65)
     toggleButton.BorderSizePixel = 0
     toggleButton.Text = ""
     toggleButton.Parent = toggleFrame
@@ -623,36 +640,23 @@ function BeautifulGUI:CreateToggle(toggleConfig, parentTab)
         local dotPositionX = state and (toggleWidth - dotSize - 2) or 2
         
         if state then
-            TweenService:Create(toggleButton, TweenInfo.new(0.3), {
-                BackgroundColor3 = Color3.fromRGB(80, 180, 80)
+            TweenService:Create(toggleButton, TweenInfo.new(0.2), {
+                BackgroundColor3 = Color3.fromRGB(0, 180, 80)
             }):Play()
-            TweenService:Create(toggleDot, TweenInfo.new(0.3), {
+            TweenService:Create(toggleDot, TweenInfo.new(0.2), {
                 Position = UDim2.new(0, dotPositionX, 0, 2)
             }):Play()
         else
-            TweenService:Create(toggleButton, TweenInfo.new(0.3), {
-                BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+            TweenService:Create(toggleButton, TweenInfo.new(0.2), {
+                BackgroundColor3 = Color3.fromRGB(50, 50, 65)
             }):Play()
-            TweenService:Create(toggleDot, TweenInfo.new(0.3), {
+            TweenService:Create(toggleDot, TweenInfo.new(0.2), {
                 Position = UDim2.new(0, dotPositionX, 0, 2)
             }):Play()
         end
     end
     
     updateToggle()
-    
-    -- Efeitos para o toggle
-    toggleButton.MouseEnter:Connect(function()
-        TweenService:Create(toggleButton, TweenInfo.new(0.2), {
-            Size = UDim2.new(0, toggleWidth + 5, 0, toggleHeight + 5)
-        }):Play()
-    end)
-    
-    toggleButton.MouseLeave:Connect(function()
-        TweenService:Create(toggleButton, TweenInfo.new(0.2), {
-            Size = UDim2.new(0, toggleWidth, 0, toggleHeight)
-        }):Play()
-    end)
     
     -- Evento
     toggleButton.MouseButton1Click:Connect(function()
@@ -674,10 +678,6 @@ function BeautifulGUI:CreateToggle(toggleConfig, parentTab)
     }
 end
 
--- =============================================
--- UTILITÁRIOS
--- =============================================
-
 -- Destruir GUI
 function BeautifulGUI:Destroy()
     for _, connection in pairs(self.Connections) do
@@ -689,10 +689,6 @@ function BeautifulGUI:Destroy()
     if self.screenGui then
         pcall(function() self.screenGui:Destroy() end)
     end
-    
-    if self.blurEffect then
-        pcall(function() self.blurEffect:Destroy() end)
-    end
 end
 
 -- Mudar título
@@ -701,9 +697,5 @@ function BeautifulGUI:SetTitle(newTitle)
         self.title.Text = newTitle
     end
 end
-
--- =============================================
--- EXPORTAÇÃO
--- =============================================
 
 return BeautifulGUI
