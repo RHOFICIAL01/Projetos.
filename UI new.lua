@@ -1,427 +1,169 @@
--- BeautifulGUI Library
--- Versão: VIP - Interface Centralizada com Efeitos
-local BeautifulGUI = {}
-BeautifulGUI.__index = BeautifulGUI
-
--- Serviços
+local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local Players = game:GetService("Players")
 
--- Configuração padrão
-local DefaultConfig = {
-    Name = "SISTEMA VIP",
-    Theme = "Dark",
-    EnableBlur = false
-}
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
 
--- Temas VIP
-local Themes = {
-    Dark = {
-        Background = Color3.fromRGB(10, 10, 20),
-        Header = Color3.fromRGB(20, 20, 35),
-        Tab = Color3.fromRGB(30, 30, 45),
-        TabSelected = Color3.fromRGB(0, 150, 255),
-        Text = Color3.fromRGB(255, 255, 255),
-        TextSecondary = Color3.fromRGB(170, 170, 170),
-        Button = Color3.fromRGB(0, 100, 255),
-        ButtonHover = Color3.fromRGB(0, 120, 255),
-        CloseButton = Color3.fromRGB(255, 50, 50),
-        CloseButtonHover = Color3.fromRGB(255, 80, 80),
-        MinimizeButton = Color3.fromRGB(255, 150, 0),
-        MinimizeButtonHover = Color3.fromRGB(255, 180, 0),
-        Section = Color3.fromRGB(0, 150, 255)
-    }
-}
+-- Criar a ScreenGui principal
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "BeautifulGUI"
+screenGui.Parent = playerGui
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-function BeautifulGUI.new(config)
-    local self = setmetatable({}, BeautifulGUI)
-    
-    self.Config = setmetatable(config or {}, {__index = DefaultConfig})
-    self.Theme = Themes[self.Config.Theme] or Themes.Dark
-    self.Tabs = {}
-    self.CurrentTab = nil
-    self.Connections = {}
-    self.guiVisible = true
-    self.isMinimized = false
-    
-    self:Initialize()
-    return self
-end
+-- Efeito de blur background
+local blurEffect = Instance.new("BlurEffect")
+blurEffect.Size = 8
+blurEffect.Parent = game:GetService("Lighting")
 
--- Inicialização
-function BeautifulGUI:Initialize()
-    self.player = Players.LocalPlayer
-    self.playerGui = self.player:WaitForChild("PlayerGui")
-    
-    self:CreateMainGUI()
-    
-    print("🎮 SISTEMA VIP Carregado!")
-end
+-- Frame principal
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 500, 0, 400)
+mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+mainFrame.BackgroundTransparency = 0.1
+mainFrame.BorderSizePixel = 0
+mainFrame.ClipsDescendants = true
+mainFrame.Parent = screenGui
 
--- =============================================
--- GUI PRINCIPAL (CENTRALIZADA)
--- =============================================
+-- Cantos arredondados
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 15)
+mainCorner.Parent = mainFrame
 
-function BeautifulGUI:CreateMainGUI()
-    self.screenGui = Instance.new("ScreenGui")
-    self.screenGui.Name = "VIPSystem"
-    self.screenGui.Parent = self.playerGui
-    self.screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    self.screenGui.Enabled = true
-    self.screenGui.ResetOnSpawn = false
+-- Borda luminosa
+local mainStroke = Instance.new("UIStroke")
+mainStroke.Thickness = 2
+mainStroke.Color = Color3.fromRGB(100, 100, 255)
+mainStroke.Transparency = 0.3
+mainStroke.Parent = mainFrame
 
-    -- TAMANHO DA INTERFACE (600x500)
-    self.guiWidth = 600
-    self.guiHeight = 500
+-- Header
+local header = Instance.new("Frame")
+header.Name = "Header"
+header.Size = UDim2.new(1, 0, 0, 50)
+header.Position = UDim2.new(0, 0, 0, 0)
+header.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+header.BackgroundTransparency = 0.1
+header.BorderSizePixel = 0
+header.Parent = mainFrame
 
-    -- Frame principal (CENTRALIZADO)
-    self.mainFrame = Instance.new("Frame")
-    self.mainFrame.Name = "MainFrame"
-    self.mainFrame.Size = UDim2.new(0, self.guiWidth, 0, self.guiHeight)
-    self.mainFrame.Position = UDim2.new(0.5, -self.guiWidth/2, 0.5, -self.guiHeight/2) -- Centralizado
-    self.mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-    self.mainFrame.BackgroundColor3 = self.Theme.Background
-    self.mainFrame.BackgroundTransparency = 0
-    self.mainFrame.BorderSizePixel = 0
-    self.mainFrame.ClipsDescendants = true
-    self.mainFrame.Parent = self.screenGui
+local headerCorner = Instance.new("UICorner")
+headerCorner.CornerRadius = UDim.new(0, 15)
+headerCorner.Parent = header
 
-    -- Efeito de sombra forte (como na foto)
-    local shadow = Instance.new("ImageLabel")
-    shadow.Name = "Shadow"
-    shadow.Size = UDim2.new(1, 40, 1, 40)
-    shadow.Position = UDim2.new(0, -20, 0, -20)
-    shadow.BackgroundTransparency = 1
-    shadow.Image = "rbxassetid://2615687895"
-    shadow.ImageColor3 = Color3.new(0, 0, 0)
-    shadow.ImageTransparency = 0.7
-    shadow.ScaleType = Enum.ScaleType.Slice
-    shadow.SliceCenter = Rect.new(20, 20, 280, 280)
-    shadow.ZIndex = 0
-    shadow.Parent = self.mainFrame
+-- Título
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.Size = UDim2.new(0, 200, 1, 0)
+title.Position = UDim2.new(0, 20, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "SISTEMA VIP"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextSize = 20
+title.Font = Enum.Font.GothamBold
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = header
 
-    -- Borda brilhante azul (efeito da foto)
-    local glowStroke = Instance.new("UIStroke")
-    glowStroke.Thickness = 3
-    glowStroke.Color = Color3.fromRGB(0, 150, 255)
-    glowStroke.Transparency = 0.1
-    glowStroke.Parent = self.mainFrame
+-- Botão fechar
+local closeButton = Instance.new("TextButton")
+closeButton.Name = "CloseButton"
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -35, 0, 10)
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+closeButton.BorderSizePixel = 0
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.TextSize = 16
+closeButton.Font = Enum.Font.GothamBold
+closeButton.Parent = header
 
-    -- Efeito de gradiente interno
-    local gradient = Instance.new("UIGradient")
-    gradient.Rotation = 90
-    gradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(15, 15, 25)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 20))
-    })
-    gradient.Parent = self.mainFrame
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(1, 0)
+closeCorner.Parent = closeButton
 
-    -- Header com efeito de brilho
-    self.headerHeight = 50
-    self.header = Instance.new("Frame")
-    self.header.Name = "Header"
-    self.header.Size = UDim2.new(1, 0, 0, self.headerHeight)
-    self.header.Position = UDim2.new(0, 0, 0, 0)
-    self.header.BackgroundColor3 = self.Theme.Header
-    self.header.BackgroundTransparency = 0
-    self.header.BorderSizePixel = 0
-    self.header.ZIndex = 3
-    self.header.Parent = self.mainFrame
+-- Container de Tabs
+local tabsContainer = Instance.new("Frame")
+tabsContainer.Name = "TabsContainer"
+tabsContainer.Size = UDim2.new(0, 120, 1, -50)
+tabsContainer.Position = UDim2.new(0, 0, 0, 50)
+tabsContainer.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+tabsContainer.BorderSizePixel = 0
+tabsContainer.Parent = mainFrame
 
-    -- Gradiente do header
-    local headerGradient = Instance.new("UIGradient")
-    headerGradient.Rotation = 90
-    headerGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 25, 40)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 35))
-    })
-    headerGradient.Parent = self.header
+-- Container de Conteúdo
+local contentContainer = Instance.new("Frame")
+contentContainer.Name = "ContentContainer"
+contentContainer.Size = UDim2.new(1, -120, 1, -50)
+contentContainer.Position = UDim2.new(0, 120, 0, 50)
+contentContainer.BackgroundTransparency = 1
+contentContainer.Parent = mainFrame
 
-    -- Borda inferior do header
-    local headerStroke = Instance.new("UIStroke")
-    headerStroke.Thickness = 2
-    headerStroke.Color = Color3.fromRGB(0, 100, 255)
-    headerStroke.Transparency = 0.3
-    headerStroke.Parent = self.header
+-- ScrollingFrame para conteúdo
+local scrollingFrame = Instance.new("ScrollingFrame")
+scrollingFrame.Name = "ScrollingFrame"
+scrollingFrame.Size = UDim2.new(1, 0, 1, 0)
+scrollingFrame.Position = UDim2.new(0, 0, 0, 0)
+scrollingFrame.BackgroundTransparency = 1
+scrollingFrame.BorderSizePixel = 0
+scrollingFrame.ScrollBarThickness = 3
+scrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
+scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+scrollingFrame.Parent = contentContainer
 
-    -- Título SISTEMA VIP (estilo da foto)
-    self.title = Instance.new("TextLabel")
-    self.title.Name = "Title"
-    self.title.Size = UDim2.new(0.7, 0, 1, 0)
-    self.title.Position = UDim2.new(0, 20, 0, 0)
-    self.title.BackgroundTransparency = 1
-    self.title.Text = "SISTEMA VIP"
-    self.title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    self.title.TextSize = 18
-    self.title.Font = Enum.Font.GothamBlack
-    self.title.TextXAlignment = Enum.TextXAlignment.Left
-    self.title.ZIndex = 4
-    self.title.Parent = self.header
+local layout = Instance.new("UIListLayout")
+layout.Padding = UDim.new(0, 10)
+layout.Parent = scrollingFrame
 
-    -- Efeito de brilho no texto
-    local titleStroke = Instance.new("UIStroke")
-    titleStroke.Thickness = 1
-    titleStroke.Color = Color3.fromRGB(0, 150, 255)
-    titleStroke.Transparency = 0.5
-    titleStroke.Parent = self.title
+-- Partículas de fundo
+local particlesFrame = Instance.new("Frame")
+particlesFrame.Name = "Particles"
+particlesFrame.Size = UDim2.new(1, 0, 1, 0)
+particlesFrame.BackgroundTransparency = 1
+particlesFrame.Parent = mainFrame
 
-    -- Botão minimizar
-    self.minimizeButton = Instance.new("TextButton")
-    self.minimizeButton.Name = "MinimizeButton"
-    self.minimizeButton.Size = UDim2.new(0, 30, 0, 30)
-    self.minimizeButton.Position = UDim2.new(1, -70, 0, 10)
-    self.minimizeButton.BackgroundColor3 = self.Theme.MinimizeButton
-    self.minimizeButton.BorderSizePixel = 0
-    self.minimizeButton.Text = "-"
-    self.minimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    self.minimizeButton.TextSize = 16
-    self.minimizeButton.Font = Enum.Font.GothamBold
-    self.minimizeButton.ZIndex = 4
-    self.minimizeButton.Parent = self.header
-
-    local minimizeCorner = Instance.new("UICorner")
-    minimizeCorner.CornerRadius = UDim.new(0, 6)
-    minimizeCorner.Parent = self.minimizeButton
-
-    -- Botão fechar
-    self.closeButton = Instance.new("TextButton")
-    self.closeButton.Name = "CloseButton"
-    self.closeButton.Size = UDim2.new(0, 30, 0, 30)
-    self.closeButton.Position = UDim2.new(1, -35, 0, 10)
-    self.closeButton.BackgroundColor3 = self.Theme.CloseButton
-    self.closeButton.BorderSizePixel = 0
-    self.closeButton.Text = "X"
-    self.closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    self.closeButton.TextSize = 14
-    self.closeButton.Font = Enum.Font.GothamBold
-    self.closeButton.ZIndex = 4
-    self.closeButton.Parent = self.header
-
-    local closeCorner = Instance.new("UICorner")
-    closeCorner.CornerRadius = UDim.new(0, 6)
-    closeCorner.Parent = self.closeButton
-
-    -- Container de Tabs (lateral esquerda)
-    self.tabsWidth = 150
-    self.tabsContainer = Instance.new("Frame")
-    self.tabsContainer.Name = "TabsContainer"
-    self.tabsContainer.Size = UDim2.new(0, self.tabsWidth, 1, -self.headerHeight)
-    self.tabsContainer.Position = UDim2.new(0, 0, 0, self.headerHeight)
-    self.tabsContainer.BackgroundColor3 = self.Theme.Tab
-    self.tabsContainer.BorderSizePixel = 0
-    self.tabsContainer.ZIndex = 2
-    self.tabsContainer.Parent = self.mainFrame
-
-    -- Gradiente das tabs
-    local tabsGradient = Instance.new("UIGradient")
-    tabsGradient.Rotation = 90
-    tabsGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 35, 50)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 30, 45))
-    })
-    tabsGradient.Parent = self.tabsContainer
-
-    -- Borda direita das tabs
-    local tabsStroke = Instance.new("UIStroke")
-    tabsStroke.Thickness = 2
-    tabsStroke.Color = Color3.fromRGB(0, 100, 255)
-    tabsStroke.Transparency = 0.3
-    tabsStroke.Parent = self.tabsContainer
-
-    -- Container de Conteúdo (área principal)
-    self.contentContainer = Instance.new("Frame")
-    self.contentContainer.Name = "ContentContainer"
-    self.contentContainer.Size = UDim2.new(1, -self.tabsWidth, 1, -self.headerHeight)
-    self.contentContainer.Position = UDim2.new(0, self.tabsWidth, 0, self.headerHeight)
-    self.contentContainer.BackgroundTransparency = 1
-    self.contentContainer.ZIndex = 2
-    self.contentContainer.Parent = self.mainFrame
-
-    -- ScrollingFrame para conteúdo
-    self.scrollingFrame = Instance.new("ScrollingFrame")
-    self.scrollingFrame.Name = "ScrollingFrame"
-    self.scrollingFrame.Size = UDim2.new(1, 0, 1, 0)
-    self.scrollingFrame.Position = UDim2.new(0, 0, 0, 0)
-    self.scrollingFrame.BackgroundTransparency = 1
-    self.scrollingFrame.BorderSizePixel = 0
-    self.scrollingFrame.ScrollBarThickness = 4
-    self.scrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(0, 100, 255)
-    self.scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-    self.scrollingFrame.Parent = self.contentContainer
-
-    self.layout = Instance.new("UIListLayout")
-    self.layout.Padding = UDim.new(0, 15)
-    self.layout.Parent = self.scrollingFrame
-
-    -- Configurar eventos
-    self:SetupGUIEvents()
-end
-
--- Configurar eventos da GUI
-function BeautifulGUI:SetupGUIEvents()
-    -- Botão fechar
-    self.closeButton.MouseButton1Click:Connect(function()
-        self:Hide()
-    end)
-
-    -- Botão minimizar
-    self.minimizeButton.MouseButton1Click:Connect(function()
-        self:ToggleMinimize()
-    end)
-
-    -- Atualizar canvas size
-    self.layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        self.scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.layout.AbsoluteContentSize.Y)
-    end)
-
-    -- Sistema de drag para a GUI principal
-    local mainDragging = false
-    local mainDragStart, mainStartPos
-
-    local function startMainDrag(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            mainDragging = true
-            mainDragStart = input.Position
-            mainStartPos = self.mainFrame.Position
-            
-            -- Efeito durante o arraste
-            TweenService:Create(self.mainFrame, TweenInfo.new(0.2), {
-                BackgroundTransparency = 0.1
-            }):Play()
-        end
-    end
-
-    local function endMainDrag()
-        if mainDragging then
-            mainDragging = false
-            TweenService:Create(self.mainFrame, TweenInfo.new(0.2), {
-                BackgroundTransparency = 0
-            }):Play()
-        end
-    end
-
-    self.header.InputBegan:Connect(startMainDrag)
-    self.header.InputEnded:Connect(endMainDrag)
-
-    -- Atualizar posição durante o arraste
-    self.Connections.dragHeartbeat = RunService.Heartbeat:Connect(function()
-        if mainDragging then
-            local mousePos = UserInputService:GetMouseLocation()
-            local delta = mousePos - mainDragStart
-            local newX = mainStartPos.X.Offset + delta.X
-            local newY = mainStartPos.Y.Offset + delta.Y
-            
-            -- Limitar dentro da tela
-            local viewportSize = game:GetService("Workspace").CurrentCamera.ViewportSize
-            newX = math.clamp(newX, 0, viewportSize.X - self.guiWidth)
-            newY = math.clamp(newY, 0, viewportSize.Y - self.guiHeight)
-            
-            self.mainFrame.Position = UDim2.new(0, newX, 0, newY)
-        end
-    end)
-
-    -- Efeitos hover para botões
-    self.minimizeButton.MouseEnter:Connect(function()
-        TweenService:Create(self.minimizeButton, TweenInfo.new(0.2), {
-            BackgroundColor3 = self.Theme.MinimizeButtonHover,
-            Size = UDim2.new(0, 32, 0, 32)
-        }):Play()
-    end)
-
-    self.minimizeButton.MouseLeave:Connect(function()
-        TweenService:Create(self.minimizeButton, TweenInfo.new(0.2), {
-            BackgroundColor3 = self.Theme.MinimizeButton,
-            Size = UDim2.new(0, 30, 0, 30)
-        }):Play()
-    end)
-
-    self.closeButton.MouseEnter:Connect(function()
-        TweenService:Create(self.closeButton, TweenInfo.new(0.2), {
-            BackgroundColor3 = self.Theme.CloseButtonHover,
-            Size = UDim2.new(0, 32, 0, 32)
-        }):Play()
-    end)
-
-    self.closeButton.MouseLeave:Connect(function()
-        TweenService:Create(self.closeButton, TweenInfo.new(0.2), {
-            BackgroundColor3 = self.Theme.CloseButton,
-            Size = UDim2.new(0, 30, 0, 30)
-        }):Play()
-    end)
-end
-
--- =============================================
--- MÉTODOS PRINCIPAIS
--- =============================================
-
--- Minimizar GUI
-function BeautifulGUI:Minimize()
-    if self.isMinimized then return end
-    
-    self.isMinimized = true
-    
-    -- Animação de minimização
-    local minimizeTween = TweenService:Create(
-        self.mainFrame,
-        TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In),
-        {
-            Size = UDim2.new(0, 0, 0, 0), 
-            BackgroundTransparency = 1
-        }
+-- Criar partículas
+for i = 1, 12 do
+    local particle = Instance.new("Frame")
+    particle.Size = UDim2.new(0, math.random(3, 6), 0, math.random(3, 6))
+    particle.Position = UDim2.new(0, math.random(0, 450), 0, math.random(50, 350))
+    particle.BackgroundColor3 = Color3.fromRGB(
+        math.random(80, 150),
+        math.random(80, 150),
+        math.random(180, 255)
     )
+    particle.BackgroundTransparency = 0.8
+    particle.BorderSizePixel = 0
+    particle.Parent = particlesFrame
     
-    minimizeTween:Play()
+    local particleCorner = Instance.new("UICorner")
+    particleCorner.CornerRadius = UDim.new(1, 0)
+    particleCorner.Parent = particle
 end
 
--- Maximizar GUI
-function BeautifulGUI:Maximize()
-    if not self.isMinimized then return end
-    
-    self.isMinimized = false
-    
-    -- Animação de maximização
-    local maximizeTween = TweenService:Create(
-        self.mainFrame,
-        TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-        {
-            Size = UDim2.new(0, self.guiWidth, 0, self.guiHeight), 
-            BackgroundTransparency = 0
-        }
-    )
-    
-    maximizeTween:Play()
-end
+-- Efeito de onda pulsante
+local pulseRing = Instance.new("Frame")
+pulseRing.Name = "PulseRing"
+pulseRing.Size = UDim2.new(0, 80, 0, 80)
+pulseRing.Position = UDim2.new(0.5, 0, 0.5, 0)
+pulseRing.AnchorPoint = Vector2.new(0.5, 0.5)
+pulseRing.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
+pulseRing.BackgroundTransparency = 0.9
+pulseRing.BorderSizePixel = 0
+pulseRing.Parent = mainFrame
 
--- Mostrar GUI
-function BeautifulGUI:Show()
-    self.screenGui.Enabled = true
-    self:Maximize()
-    self.guiVisible = true
-end
+local pulseCorner = Instance.new("UICorner")
+pulseCorner.CornerRadius = UDim.new(1, 0)
+pulseCorner.Parent = pulseRing
 
--- Esconder GUI
-function BeautifulGUI:Hide()
-    self.screenGui.Enabled = false
-    self.guiVisible = false
-end
+-- Sistema de Tabs
+local Tabs = {}
+local CurrentTab = nil
 
--- Alternar entre minimizado/maximizado
-function BeautifulGUI:ToggleMinimize()
-    if self.isMinimized then
-        self:Maximize()
-    else
-        self:Minimize()
-    end
-end
-
--- =============================================
--- SISTEMA DE TABS E ELEMENTOS
--- =============================================
-
--- Criar Tab
-function BeautifulGUI:CreateTab(tabName)
+local function CreateTab(tabName)
     local tab = {
         Name = tabName,
         Container = nil,
@@ -429,40 +171,21 @@ function BeautifulGUI:CreateTab(tabName)
     }
     
     -- Botão da Tab
-    local tabHeight = 45
     local tabButton = Instance.new("TextButton")
     tabButton.Name = tabName .. "Tab"
-    tabButton.Size = UDim2.new(1, -10, 0, tabHeight)
-    tabButton.Position = UDim2.new(0, 5, 0, 5 + (#self.Tabs * (tabHeight + 5)))
-    tabButton.BackgroundColor3 = self.Theme.Tab
+    tabButton.Size = UDim2.new(1, -10, 0, 35)
+    tabButton.Position = UDim2.new(0, 5, 0, 5 + (#Tabs * 40))
+    tabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
     tabButton.BorderSizePixel = 0
     tabButton.Text = tabName
-    tabButton.TextColor3 = self.Theme.TextSecondary
+    tabButton.TextColor3 = Color3.fromRGB(200, 200, 200)
     tabButton.TextSize = 14
-    tabButton.Font = Enum.Font.GothamBold
-    tabButton.ZIndex = 3
-    tabButton.Parent = self.tabsContainer
+    tabButton.Font = Enum.Font.Gotham
+    tabButton.Parent = tabsContainer
     
     local tabCorner = Instance.new("UICorner")
     tabCorner.CornerRadius = UDim.new(0, 6)
     tabCorner.Parent = tabButton
-    
-    -- Efeitos hover para tabs
-    tabButton.MouseEnter:Connect(function()
-        if tab ~= self.CurrentTab then
-            TweenService:Create(tabButton, TweenInfo.new(0.2), {
-                BackgroundColor3 = Color3.fromRGB(45, 45, 65)
-            }):Play()
-        end
-    end)
-    
-    tabButton.MouseLeave:Connect(function()
-        if tab ~= self.CurrentTab then
-            TweenService:Create(tabButton, TweenInfo.new(0.2), {
-                BackgroundColor3 = self.Theme.Tab
-            }):Play()
-        end
-    end)
     
     -- Container da Tab
     local tabContainer = Instance.new("Frame")
@@ -470,10 +193,10 @@ function BeautifulGUI:CreateTab(tabName)
     tabContainer.Size = UDim2.new(1, 0, 0, 0)
     tabContainer.BackgroundTransparency = 1
     tabContainer.Visible = false
-    tabContainer.Parent = self.scrollingFrame
+    tabContainer.Parent = scrollingFrame
     
     local tabLayout = Instance.new("UIListLayout")
-    tabLayout.Padding = UDim.new(0, 15)
+    tabLayout.Padding = UDim.new(0, 10)
     tabLayout.Parent = tabContainer
     
     tab.Container = tabContainer
@@ -481,47 +204,41 @@ function BeautifulGUI:CreateTab(tabName)
     
     -- Evento de clique
     tabButton.MouseButton1Click:Connect(function()
-        self:SwitchTab(tabName)
+        -- Deselecionar todas as tabs
+        for _, otherTab in pairs(Tabs) do
+            otherTab.Container.Visible = false
+            otherTab.Button.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+            otherTab.Button.TextColor3 = Color3.fromRGB(200, 200, 200)
+        end
+        
+        -- Selecionar esta tab
+        tab.Container.Visible = true
+        tab.Button.BackgroundColor3 = Color3.fromRGB(60, 100, 255)
+        tab.Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+        CurrentTab = tab
     end)
     
-    table.insert(self.Tabs, tab)
+    table.insert(Tabs, tab)
     
     -- Selecionar primeira tab
-    if #self.Tabs == 1 then
-        self:SwitchTab(tabName)
+    if #Tabs == 1 then
+        tabButton.BackgroundColor3 = Color3.fromRGB(60, 100, 255)
+        tabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        tabContainer.Visible = true
+        CurrentTab = tab
     end
     
     return tab
 end
 
--- Mudar de Tab
-function BeautifulGUI:SwitchTab(tabName)
-    for _, tab in pairs(self.Tabs) do
-        if tab.Name == tabName then
-            tab.Container.Visible = true
-            TweenService:Create(tab.Button, TweenInfo.new(0.3), {
-                BackgroundColor3 = self.Theme.TabSelected,
-                TextColor3 = self.Theme.Text
-            }):Play()
-            self.CurrentTab = tab
-        else
-            tab.Container.Visible = false
-            TweenService:Create(tab.Button, TweenInfo.new(0.3), {
-                BackgroundColor3 = self.Theme.Tab,
-                TextColor3 = self.Theme.TextSecondary
-            }):Play()
-        end
-    end
-end
-
--- Criar Section
-function BeautifulGUI:CreateSection(sectionName, parentTab)
-    local tab = parentTab or self.CurrentTab
+-- Função para criar Section
+local function CreateSection(sectionName, parentTab)
+    local tab = parentTab or CurrentTab
     if not tab then return end
     
     local section = Instance.new("Frame")
     section.Name = sectionName .. "Section"
-    section.Size = UDim2.new(1, -30, 0, 35)
+    section.Size = UDim2.new(1, -20, 0, 30)
     section.BackgroundTransparency = 1
     section.Parent = tab.Container
     
@@ -529,31 +246,30 @@ function BeautifulGUI:CreateSection(sectionName, parentTab)
     sectionLabel.Name = "Label"
     sectionLabel.Size = UDim2.new(1, 0, 1, 0)
     sectionLabel.BackgroundTransparency = 1
-    sectionLabel.Text = sectionName
-    sectionLabel.TextColor3 = self.Theme.Section
+    sectionLabel.Text = "│ " .. sectionName:upper()
+    sectionLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     sectionLabel.TextSize = 16
-    sectionLabel.Font = Enum.Font.GothamBlack
+    sectionLabel.Font = Enum.Font.GothamBold
     sectionLabel.TextXAlignment = Enum.TextXAlignment.Left
     sectionLabel.Parent = section
     
     return section
 end
 
--- Criar Button
-function BeautifulGUI:CreateButton(buttonConfig, parentTab)
-    local tab = parentTab or self.CurrentTab
+-- Função para criar Button
+local function CreateButton(buttonConfig, parentTab)
+    local tab = parentTab or CurrentTab
     if not tab then return end
     
-    local buttonHeight = 40
     local button = Instance.new("TextButton")
     button.Name = buttonConfig.Name .. "Button"
-    button.Size = UDim2.new(1, -30, 0, buttonHeight)
-    button.BackgroundColor3 = self.Theme.Button
+    button.Size = UDim2.new(1, -20, 0, 35)
+    button.BackgroundColor3 = Color3.fromRGB(60, 100, 255)
     button.BorderSizePixel = 0
     button.Text = buttonConfig.Text or buttonConfig.Name
-    button.TextColor3 = self.Theme.Text
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
     button.TextSize = 14
-    button.Font = Enum.Font.GothamBold
+    button.Font = Enum.Font.Gotham
     button.Parent = tab.Container
     
     local buttonCorner = Instance.new("UICorner")
@@ -563,13 +279,13 @@ function BeautifulGUI:CreateButton(buttonConfig, parentTab)
     -- Efeito hover
     button.MouseEnter:Connect(function()
         TweenService:Create(button, TweenInfo.new(0.2), {
-            BackgroundColor3 = self.Theme.ButtonHover
+            BackgroundColor3 = Color3.fromRGB(80, 120, 255)
         }):Play()
     end)
     
     button.MouseLeave:Connect(function()
         TweenService:Create(button, TweenInfo.new(0.2), {
-            BackgroundColor3 = self.Theme.Button
+            BackgroundColor3 = Color3.fromRGB(60, 100, 255)
         }):Play()
     end)
     
@@ -581,14 +297,14 @@ function BeautifulGUI:CreateButton(buttonConfig, parentTab)
     return button
 end
 
--- Criar Toggle
-function BeautifulGUI:CreateToggle(toggleConfig, parentTab)
-    local tab = parentTab or self.CurrentTab
+-- Função para criar Toggle
+local function CreateToggle(toggleConfig, parentTab)
+    local tab = parentTab or CurrentTab
     if not tab then return end
     
     local toggleFrame = Instance.new("Frame")
     toggleFrame.Name = toggleConfig.Name .. "Toggle"
-    toggleFrame.Size = UDim2.new(1, -30, 0, 40)
+    toggleFrame.Size = UDim2.new(1, -20, 0, 30)
     toggleFrame.BackgroundTransparency = 1
     toggleFrame.Parent = tab.Container
     
@@ -598,22 +314,17 @@ function BeautifulGUI:CreateToggle(toggleConfig, parentTab)
     toggleLabel.Position = UDim2.new(0, 0, 0, 0)
     toggleLabel.BackgroundTransparency = 1
     toggleLabel.Text = toggleConfig.Text or toggleConfig.Name
-    toggleLabel.TextColor3 = self.Theme.Text
+    toggleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     toggleLabel.TextSize = 14
-    toggleLabel.Font = Enum.Font.GothamBold
+    toggleLabel.Font = Enum.Font.Gotham
     toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
     toggleLabel.Parent = toggleFrame
     
-    -- Toggle button
-    local toggleWidth = 60
-    local toggleHeight = 30
-    local dotSize = 22
-    
     local toggleButton = Instance.new("TextButton")
     toggleButton.Name = "Toggle"
-    toggleButton.Size = UDim2.new(0, toggleWidth, 0, toggleHeight)
-    toggleButton.Position = UDim2.new(1, -toggleWidth, 0, 5)
-    toggleButton.BackgroundColor3 = Color3.fromRGB(50, 50, 65)
+    toggleButton.Size = UDim2.new(0, 50, 0, 25)
+    toggleButton.Position = UDim2.new(1, -50, 0, 2)
+    toggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
     toggleButton.BorderSizePixel = 0
     toggleButton.Text = ""
     toggleButton.Parent = toggleFrame
@@ -624,7 +335,7 @@ function BeautifulGUI:CreateToggle(toggleConfig, parentTab)
     
     local toggleDot = Instance.new("Frame")
     toggleDot.Name = "Dot"
-    toggleDot.Size = UDim2.new(0, dotSize, 0, dotSize)
+    toggleDot.Size = UDim2.new(0, 21, 0, 21)
     toggleDot.Position = UDim2.new(0, 2, 0, 2)
     toggleDot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     toggleDot.BorderSizePixel = 0
@@ -637,21 +348,19 @@ function BeautifulGUI:CreateToggle(toggleConfig, parentTab)
     local state = toggleConfig.Default or false
     
     local function updateToggle()
-        local dotPositionX = state and (toggleWidth - dotSize - 2) or 2
-        
         if state then
             TweenService:Create(toggleButton, TweenInfo.new(0.2), {
-                BackgroundColor3 = Color3.fromRGB(0, 180, 80)
+                BackgroundColor3 = Color3.fromRGB(60, 180, 100)
             }):Play()
             TweenService:Create(toggleDot, TweenInfo.new(0.2), {
-                Position = UDim2.new(0, dotPositionX, 0, 2)
+                Position = UDim2.new(0, 27, 0, 2)
             }):Play()
         else
             TweenService:Create(toggleButton, TweenInfo.new(0.2), {
-                BackgroundColor3 = Color3.fromRGB(50, 50, 65)
+                BackgroundColor3 = Color3.fromRGB(60, 60, 70)
             }):Play()
             TweenService:Create(toggleDot, TweenInfo.new(0.2), {
-                Position = UDim2.new(0, dotPositionX, 0, 2)
+                Position = UDim2.new(0, 2, 0, 2)
             }):Play()
         end
     end
@@ -678,24 +387,120 @@ function BeautifulGUI:CreateToggle(toggleConfig, parentTab)
     }
 end
 
--- Destruir GUI
-function BeautifulGUI:Destroy()
-    for _, connection in pairs(self.Connections) do
-        if connection then
-            pcall(function() connection:Disconnect() end)
+-- ANIMAÇÕES
+-- Animação de entrada
+mainFrame.Size = UDim2.new(0, 0, 0, 0)
+mainFrame.BackgroundTransparency = 1
+
+local entranceTween = TweenService:Create(
+    mainFrame,
+    TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+    {Size = UDim2.new(0, 500, 0, 400), BackgroundTransparency = 0.1}
+)
+entranceTween:Play()
+
+-- Animação de pulso
+local pulseTween = TweenService:Create(
+    pulseRing,
+    TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, -1, true),
+    {Size = UDim2.new(0, 160, 0, 160), BackgroundTransparency = 1}
+)
+pulseTween:Play()
+
+-- Animação das partículas
+local function animateParticles()
+    for _, particle in pairs(particlesFrame:GetChildren()) do
+        if particle:IsA("Frame") then
+            local randomX = math.random(-50, 500)
+            local randomY = math.random(50, 400)
+            local randomTime = math.random(4, 10)
+            
+            local tween = TweenService:Create(
+                particle,
+                TweenInfo.new(randomTime, Enum.EasingStyle.Linear, Enum.EasingDirection.Out, -1, true),
+                {Position = UDim2.new(0, randomX, 0, randomY)}
+            )
+            tween:Play()
         end
     end
+end
+animateParticles()
+
+-- Efeitos de hover no botão fechar
+closeButton.MouseEnter:Connect(function()
+    TweenService:Create(
+        closeButton,
+        TweenInfo.new(0.2),
+        {BackgroundColor3 = Color3.fromRGB(255, 100, 100), Size = UDim2.new(0, 32, 0, 32)}
+    ):Play()
+end)
+
+closeButton.MouseLeave:Connect(function()
+    TweenService:Create(
+        closeButton,
+        TweenInfo.new(0.2),
+        {BackgroundColor3 = Color3.fromRGB(255, 80, 80), Size = UDim2.new(0, 30, 0, 30)}
+    ):Play()
+end)
+
+-- Função fechar
+closeButton.MouseButton1Click:Connect(function()
+    local exitTween = TweenService:Create(
+        mainFrame,
+        TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In),
+        {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1}
+    )
     
-    if self.screenGui then
-        pcall(function() self.screenGui:Destroy() end)
-    end
-end
+    exitTween:Play()
+    exitTween.Completed:Connect(function()
+        screenGui:Destroy()
+        blurEffect.Enabled = false
+    end)
+end)
 
--- Mudar título
-function BeautifulGUI:SetTitle(newTitle)
-    if self.title then
-        self.title.Text = newTitle
-    end
-end
+-- Atualizar canvas size
+layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y)
+end)
 
-return BeautifulGUI
+-- Sistema de drag
+local dragging = false
+local dragInput, dragStart, startPos
+
+header.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+header.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(
+            startPos.X.Scale, startPos.X.Offset + delta.X,
+            startPos.Y.Scale, startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+-- EXPORTAR FUNÇÕES
+return {
+    CreateTab = CreateTab,
+    CreateSection = CreateSection,
+    CreateButton = CreateButton,
+    CreateToggle = CreateToggle
+}
