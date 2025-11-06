@@ -20,11 +20,6 @@ screenGui.Name = "BeautifulGUI"
 screenGui.Parent = playerGui
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- Efeito de blur background
-local blurEffect = Instance.new("BlurEffect")
-blurEffect.Size = 8
-blurEffect.Parent = game:GetService("Lighting")
-
 -- Frame principal - POSICIONADO NO CANTO SUPERIOR ESQUERDO
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
@@ -550,7 +545,6 @@ closeButton.MouseButton1Click:Connect(function()
     exitTween:Play()
     exitTween.Completed:Connect(function()
         screenGui:Destroy()
-        blurEffect.Enabled = false
     end)
 end)
 
@@ -558,8 +552,6 @@ end)
 layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
     scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y)
 end)
-
--- REMOVIDO: Sistema de drag (agora a GUI é fixa)
 
 print("🎮 BeautifulGUI Carregada!")
 print("📟 Plataforma: " .. (isMobile and "📱 MOBILE" or "🖥️ PC"))
